@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api.apps.ApiConfig',
-    'sougouweixin.apps.SougouweixinConfig',
+    'sougou_weixin',
     'rest_framework',
     'myscrapy',
     'corsheaders',
@@ -89,6 +89,7 @@ DATABASES = {
         'PASSWORD': 'jsjs=123',  # 用户密码
         'HOST': '39.102.58.35',  # 访问的数据库的主机的ip地址
         'PORT': '3306',  # 默认mysql访问端口
+        'OPTIONS': {'charset':'utf8mb4'}, # 指定编码方式用来兼容emoji等特殊符号
     }
 }
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Keyword, ScrapedUrls, Article, Target
+from api.models import Keyword, ScrapedUrls, Article, Target
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -8,13 +8,13 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = '__all__'  # 要序列化的字段
 
         def create(self, validated_data):
-            domain = validated_data['domain']
+            source = validated_data['source']
             url = validated_data['url']
             title = validated_data['title']
             time = validated_data['time']
             text = validated_data['text']
             article = Article.objects.create(
-                domain=domain,
+                source=source,
                 url=url,
                 title=title,
                 time=time,
@@ -23,12 +23,12 @@ class ArticleSerializer(serializers.ModelSerializer):
             return article
 
         def update(self, instance, validated_data):
-            domain = validated_data['domain']
+            source = validated_data['source']
             url = validated_data['url']
             title = validated_data['title']
             time = validated_data['time']
             text = validated_data['text']
-            instance.domain = domain
+            instance.source = source
             instance.title = title
             instance.url = url
             instance.time = time

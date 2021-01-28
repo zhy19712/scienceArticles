@@ -1,9 +1,20 @@
-import requests
-from lxml import etree
+import time
+from urllib import parse
+from logger import logger
+from serializers import ArticleSerializer
+from util import get_target, timestamp2string, not_in_scrapedUrls, add_scrapedUrls
+import logging
 import re
 import random
 import json
-from urllib import parse
+import requests
+from lxml import etree
+
+# 配置微信爬虫logger
+weixin_log = logger('weixin.log', logging.DEBUG, logging.DEBUG)
+article_time = ''
+article_url = ''
+
 
 
 def get_cookie(response1, uigs_para, UserAgent):
@@ -62,7 +73,6 @@ def get_cookie(response1, uigs_para, UserAgent):
     response4 = requests.get(url, headers=headers, params=uigs_para)
     SetCookie = response4.headers['Set-Cookie']
     cookie_params['SUV'] = re.findall('SUV=(.*?);', SetCookie, re.S)[0]
-
     return cookie_params
 
 
@@ -74,17 +84,21 @@ def get_k_h(url):
 
 
 def get_uigs_para(response):
-    uigs_para = re.findall('var uigs_para = (.*?);', response.text, re.S)[0]
-    if 'passportUserId ? "1" : "0"' in uigs_para:
-        uigs_para = uigs_para.replace('passportUserId ? "1" : "0"', '0')
-    uigs_para = json.loads(uigs_para)
-    exp_id = re.findall('uigs_para.exp_id = "(.*?)";', response.text, re.S)[0]
-    uigs_para['right'] = 'right0_0'
-    uigs_para['exp_id'] = exp_id[:-1]
-    return uigs_para
+    try:
+        uigs_para = re.findall('var uigs_para = (.*?);', response.text, re.S)[0]
+        if 'passportUserId ? "1" : "0"' in uigs_para:
+            uigs_para = uigs_para.replace('passportUserId ? "1" : "0"', '0')
+        uigs_para = json.loads(uigs_para)
+        exp_id = re.findall('uigs_para.exp_id = "(.*?)";', response.text, re.S)[0]
+        uigs_para['right'] = 'right0_0'
+        uigs_para['exp_id'] = exp_id[:-1]
+    except:
+        weixin_log.info("uigs_para list index out of range")
+    else:
+        return uigs_para
 
 
-def main_v4(list_url, UserAgent):
+def get_article(list_url, UserAgent):
     headers1 = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
         "Accept-Encoding": "gzip, deflate, br",
@@ -96,7 +110,12 @@ def main_v4(list_url, UserAgent):
     }
     response1 = requests.get(list_url, headers=headers1)
     html = etree.HTML(response1.text)
+    print(response1.url)
     urls = ['https://weixin.sogou.com' + i for i in html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/a/@href')]
+    timestamp = int(re.findall('\d+', html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/span/script/text()')[0])[0])
+    # timestamp = html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/span/script/text()')
+    global article_time
+    article_time = timestamp2string(timestamp)
 
     uigs_para = get_uigs_para(response1)
     params = get_cookie(response1, uigs_para, UserAgent)
@@ -142,6 +161,9 @@ def main_v4(list_url, UserAgent):
         for i in fragments:
             itemurl += i
 
+        global article_url
+        article_url = itemurl
+
         # 文章url拿正文
         headers4 = {
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
@@ -152,14 +174,52 @@ def main_v4(list_url, UserAgent):
         }
         response4 = requests.get(itemurl, headers=headers4)
         html = etree.HTML(response4.text)
-        print(response4.status_code)
-        print(html.xpath('//meta[@property="og:title"]/@content')[0])
-        print(html.xpath('///*[@id="js_content"]/section[5]/span/text()'))
+        weixin_log.info(response4.status_code)
+        return html
+
 
 
 if __name__ == "__main__":
-    key = "三峡e家"
-    url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(
-        parse.quote(key))
+    target = get_target(2)
+    print(target)
+    # target = ['科技富能量']
     UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0"
-    main_v4(url, UserAgent)
+    for t in target:
+        time.sleep(5)
+        weixin_log.info(t)
+        weixin_log.info("task start!")
+        url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(parse.quote(t))
+        try:
+            html = get_article(url, UserAgent)
+        except:
+            weixin_log.info(t+" : Error processing request!")
+        else:
+            if not_in_scrapedUrls(t, article_time):
+                add_scrapedUrls(t, article_time)
+                title = html.xpath('//meta[@property="og:title"]/@content')[0]
+                contexts = html.xpath('//*[@id="js_content"]')
+                text = contexts[0].xpath('string(.)').strip()
+
+                article = {
+                    "source": t,
+                    "url": article_url,
+                    "title": title,
+                    "time": article_time,
+                    "text": text
+                }
+                serializer = ArticleSerializer(data=article)
+                if serializer.is_valid():
+                    serializer.save()
+                    add_scrapedUrls(t, article_time)
+                    weixin_log.info("task completed!")
+                else:
+                    weixin_log.info("failed save to database!")
+            else:
+                weixin_log.info("article already exists, pass")
+
+
+
+
+
+
+

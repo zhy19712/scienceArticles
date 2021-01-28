@@ -17,8 +17,8 @@ class Target(models.Model):
 
 
 class Article(models.Model):
-    domain = models.URLField(max_length=255)
-    url = models.URLField(max_length=255)
+    source = models.CharField(max_length=255, null=True)
+    url = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     time = models.CharField(max_length=255, null=True)
     text = models.TextField(null=True)
@@ -31,3 +31,5 @@ class Keyword(models.Model):
 
 class ScrapedUrls(models.Model):
     url = models.CharField(max_length=255, null=True)
+    name = models.CharField(max_length=255, null=True)
+    time = models.CharField(max_length=255, null=True)

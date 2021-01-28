@@ -4,19 +4,19 @@ import json
 
 import requests
 
-from api.models import Keyword, ScrapedUrls
+from api.models import Keyword, ScrapedUrls, Target
 from myscrapy.items import TutorialItem
 from scrapy import Request
-from api.serializers import KeywordSerializer, ScrapedUrlsSerializer
+from api.serializers import KeywordSerializer, ScrapedUrlsSerializer, TargetSerializer
 
-# target_type = 0 ：微信公众号
+
+# 获取爬取对象
+# target_type = 2 ：微信公众号
 # target_type = 1 ：网站
-
-
-# def get_target(target_type):
-#     queryset = Target.objects.filter(type=target_type)
-#     serializer = TargetSerializer(queryset, many=True)
-#     return serializer.data
+def get_target(target_type):
+    queryset = Target.objects.filter(type=target_type)
+    serializer = TargetSerializer(queryset, many=True)
+    return serializer.data
 
 
 # def get_keyword():
