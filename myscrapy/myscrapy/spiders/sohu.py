@@ -1,21 +1,22 @@
 import scrapy
 import re, os
 
-from api.models import KeywordTitle, KeywordText, ScrapedUrls
+from api.models import ScrapedUrls
 from myscrapy.items import TutorialItem
 from scrapy import Request
-from api.serializers import KeywordTextSerializer, KeywordTitleSerializer, ScrapedUrlsSerializer
+from api.serializers import ScrapedUrlsSerializer
 
 
 # 在文件主目录下执行抓取：#scrapy crawl sohuSpider
 
 class SohuSpider(scrapy.Spider):
-    name = 'sohuSpider'  # 项目名称
+    name = 'sohu_spider'  # 项目名称
     allowed_domains = ['www.sohu.com']  #指定爬虫作用范围
     start_urls = ['http://www.sohu.com/']  # 开始url
 
     def parse(self, response):
         key_word = self.get_keyword()
+        print(key_word)
         all_urls = re.findall('href="(.*?)"', response.xpath("/html").extract_first())
         for url in list(set(all_urls)):
             item = TutorialItem()

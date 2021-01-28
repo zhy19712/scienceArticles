@@ -9,6 +9,7 @@ import random
 import json
 import requests
 from lxml import etree
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # 配置微信爬虫logger
 weixin_log = logger('weixin.log', logging.DEBUG, logging.DEBUG)
@@ -93,7 +94,7 @@ def get_uigs_para(response):
         uigs_para['right'] = 'right0_0'
         uigs_para['exp_id'] = exp_id[:-1]
     except:
-        weixin_log.info("uigs_para list index out of range")
+        weixin_log.error("Failed get_uigs_para")
     else:
         return uigs_para
 
@@ -110,7 +111,7 @@ def get_article(list_url, UserAgent):
     }
     response1 = requests.get(list_url, headers=headers1)
     html = etree.HTML(response1.text)
-    print(response1.url)
+    # print(response1.url)
     urls = ['https://weixin.sogou.com' + i for i in html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/a/@href')]
     timestamp = int(re.findall('\d+', html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/span/script/text()')[0])[0])
     # timestamp = html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/span/script/text()')
@@ -178,24 +179,22 @@ def get_article(list_url, UserAgent):
         return html
 
 
-
-if __name__ == "__main__":
+def start_process():
     target = get_target(2)
     print(target)
     # target = ['科技富能量']
     UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0"
     for t in target:
         time.sleep(5)
-        weixin_log.info(t)
-        weixin_log.info("task start!")
-        url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(parse.quote(t))
+        weixin_log.info(t + " : task start")
+        url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(
+            parse.quote(t))
         try:
             html = get_article(url, UserAgent)
         except:
-            weixin_log.info(t+" : Error processing request!")
+            weixin_log.error(t + " : Failed get article")
         else:
             if not_in_scrapedUrls(t, article_time):
-                add_scrapedUrls(t, article_time)
                 title = html.xpath('//meta[@property="og:title"]/@content')[0]
                 contexts = html.xpath('//*[@id="js_content"]')
                 text = contexts[0].xpath('string(.)').strip()
@@ -211,11 +210,25 @@ if __name__ == "__main__":
                 if serializer.is_valid():
                     serializer.save()
                     add_scrapedUrls(t, article_time)
-                    weixin_log.info("task completed!")
+                    weixin_log.info("task completed")
                 else:
-                    weixin_log.info("failed save to database!")
+                    weixin_log.error("failed save to database")
             else:
                 weixin_log.info("article already exists, pass")
+
+
+if __name__ == "__main__":
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(start_process, 'interval', minutes=1)
+    try:
+        # scheduler.remove_all_jobs()
+        scheduler.start()
+    except (KeyboardInterrupt, SystemExit):
+        pass
+
+
+
+
 
 
 

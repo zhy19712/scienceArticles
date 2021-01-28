@@ -8,7 +8,7 @@ from api.serializers import TargetSerializer, ScrapedUrlsSerializer
 # target_type = 1 ：网站 ['url1','url2']
 def get_target(target_type):
     target = []
-    queryset = Target.objects.filter(type=target_type).distinct()
+    queryset = Target.objects.filter(type=target_type, status=1).distinct()
     serializer = TargetSerializer(queryset, many=True)
     for row in serializer.data:
         if target_type == 1:

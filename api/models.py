@@ -14,6 +14,9 @@ class Target(models.Model):
     name = models.CharField(max_length=255)
     type = models.IntegerField()
     remark = models.CharField(max_length=255, null=True)
+    status = models.IntegerField()
+    last_crawled_time = models.CharField(max_length=255, null=True)
+    last_crawled_time = models.IntegerField()
 
 
 class Article(models.Model):
