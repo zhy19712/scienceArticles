@@ -138,6 +138,8 @@ venv/
 
 ENV/
 
+html/
+
 env.bak/
 
 venv.bak/
