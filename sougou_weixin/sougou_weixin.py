@@ -1,8 +1,12 @@
-import time
+import os
 from urllib import parse
+
+from bs4 import BeautifulSoup
+
 from logger import logger
 from serializers import ArticleSerializer
-from util import get_target, timestamp2string, not_in_scrapedUrls, add_scrapedUrls
+from settings import BASE_DIR
+from util import timestamp2string, not_in_scrapedUrls, add_scrapedUrls, n_digits_random
 import logging
 import re
 import random
@@ -15,6 +19,28 @@ from apscheduler.schedulers.background import BackgroundScheduler
 weixin_log = logger('weixin.log', logging.DEBUG, logging.DEBUG)
 article_time = ''
 article_url = ''
+filepath = ''
+
+def get_start_cookie(url, UserAgent):
+    headers1 = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "Connection": "keep-alive",
+        "Host": "weixin.sogou.com",
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": UserAgent,
+    }
+    response = requests.get(url, headers=headers1)
+    SetCookie = response.headers['Set-Cookie']
+    cookie_params = {
+        "ABTEST": re.findall('ABTEST=(.*?);', SetCookie, re.S)[0],
+        "SNUID": re.findall('SNUID=(.*?);', SetCookie, re.S)[0],
+        "IPLOC": re.findall('IPLOC=(.*?);', SetCookie, re.S)[0],
+        "SUID": re.findall('SUID=(.*?);', SetCookie, re.S)[0]
+    }
+    return cookie_params
+
 
 
 
@@ -29,7 +55,7 @@ def get_cookie(response1, uigs_para, UserAgent):
 
     url = "https://www.sogou.com/sug/css/m3.min.v.7.css"
     headers = {
-        "Accept": "text/css,*/*;q=0.1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
         "Connection": "keep-alive",
@@ -99,7 +125,22 @@ def get_uigs_para(response):
         return uigs_para
 
 
-def get_article(list_url, UserAgent):
+def get_response(list_url, UserAgent):
+    # headers1 = {
+    #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    #     "Accept-Encoding": "gzip, deflate, br",
+    #     "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+    #     "Connection": "keep-alive",
+    #     # "Cookie":"ABTEST=0|1611710577|v1; IPLOC=CN1100; SUID=C2257F7C5B0CA00A000000006010C071; SUID=02DAFB72492CA20A000000006010C071; weixinIndexVisited=1; SUV=0004E05A72FBDA026010C07148DEF872; PHPSESSID=i1aandlu9kvs65b4jtq941m806; SNUID=929BCAF68B8E308BB700125E8B6E0D10; JSESSIONID=aaaLj2eoKAtuD6vOdNuCx",
+    #     "Cookie":"SUV=002713CF7C40111860137A45C1627094; ABTEST=8|1611889221|v1; SNUID=3931615C21249A211450D8D92169AC27; IPLOC=CN1100; SUID=1811407C5B0CA00A0000000060137A45; JSESSIONID=aaaotLIxfB5_U7tJgMuCx; SUID=1811407C2D34990A0000000060137A45; weixinIndexVisited=1",
+    #     "Host": "weixin.sogou.com",
+    #     "Sec-Fetch-Dest": "document",
+    #     "Sec-Fetch-Mode": "navigate",
+    #     "Sec-Fetch-Site": "same-origin",
+    #     "Sec-Fetch-User": "?1",
+    #     "Upgrade-Insecure-Requests": "1",
+    #     "User-Agent": UserAgent,
+    # }
     headers1 = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
         "Accept-Encoding": "gzip, deflate, br",
@@ -111,7 +152,7 @@ def get_article(list_url, UserAgent):
     }
     response1 = requests.get(list_url, headers=headers1)
     html = etree.HTML(response1.text)
-    # print(response1.url)
+    weixin_log.info("list url : " + response1.url)
     urls = ['https://weixin.sogou.com' + i for i in html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/a/@href')]
     timestamp = int(re.findall('\d+', html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/span/script/text()')[0])[0])
     # timestamp = html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/span/script/text()')
@@ -119,7 +160,9 @@ def get_article(list_url, UserAgent):
     article_time = timestamp2string(timestamp)
 
     uigs_para = get_uigs_para(response1)
+    # print(uigs_para)
     params = get_cookie(response1, uigs_para, UserAgent)
+    # print(params)
     approve_url = 'https://weixin.sogou.com/approve?uuid={}'.format(uigs_para['uuid'])
     headers2 = {
         "Accept": "*/*",
@@ -164,6 +207,7 @@ def get_article(list_url, UserAgent):
 
         global article_url
         article_url = itemurl
+        # print(article_url)
 
         # 文章url拿正文
         headers4 = {
@@ -174,27 +218,90 @@ def get_article(list_url, UserAgent):
             "user-agent": UserAgent
         }
         response4 = requests.get(itemurl, headers=headers4)
-        html = etree.HTML(response4.text)
-        weixin_log.info(response4.status_code)
-        return html
+        # print(response4.status_code)
+        return response4
+
+
+def save_html(response, target, article_time):
+    html = etree.HTML(response.text)
+    dir_name = n_digits_random(4)
+    first = os.path.join(BASE_DIR, 'html')
+    second = os.path.join(first, target)
+    third = os.path.join(second, article_time[:10])
+    target_dir = os.path.join(third, dir_name + '/')
+    if not os.path.exists(first):  # 不存在则创建路径
+        os.mkdir(first)
+    if not os.path.exists(second):
+        os.mkdir(second)
+    if not os.path.exists(third):
+        os.mkdir(third)
+    if not os.path.exists(target_dir):
+        os.mkdir(target_dir)
+
+    global filepath
+    filepath = target_dir + dir_name +'.html'
+    filepath_bak = target_dir + dir_name + '_bak.html'
+
+    f = open(filepath, "wb")
+    f.write(response.content)  # save to page.html
+    f.close()
+
+    obj = BeautifulSoup(response.content, 'lxml')  # 后面是指定使用lxml解析，lxml解析速度比较快，容错高。
+    imgs = obj.find_all('img')
+    urls = []
+    for img in imgs:
+        if 'data-src' in str(img):
+            urls.append(img['data-src'])
+    # 遍历所有图片链接，将图片保存到本地指定文件夹，图片名字用0，1，2...
+    i = 0
+    suffix = ''
+    for url in urls:
+        if url.endswith('png'):
+            suffix = '.png'
+        elif url.endswith('jpeg'):
+            suffix = '.jpg'
+        elif url.endswith('gif'):
+            suffix = '.gif'
+        r = requests.get(url)
+        t = os.path.join(target_dir, str(i) + suffix)
+        fw = open(t, 'wb')  # 指定绝对路径
+        fw.write(r.content)  # 保存图片到本地指定目录
+        i += 1
+
+        with open(filepath, encoding='utf-8') as f, open(filepath_bak, 'w',
+                                                         encoding='utf-8') as fw:  # 打开两个文件，原始文件用来读，另一个文件将修改的内容写入
+            # src = "data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWNgYGBgAAAABQABh6FO1AAAAABJRU5ErkJggg=="
+            old_url = 'data-src="' + url + '"'
+            new_url = 'src="' + t + '"'
+            for line in f:  # 遍历每行，用replace 方法替换
+                new_line = line.replace(old_url, new_url)  # 逐行替换
+                fw.write(new_line)  # 写入新文件
+        os.remove(filepath)  # 删除原始文件
+        os.rename(filepath_bak, filepath)  # 修改新文件名， old -> new
+
+        fw.close()
 
 
 def start_process():
-    target = get_target(2)
-    print(target)
-    # target = ['科技富能量']
-    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0"
+    # target = get_target(2)
+    # print(target)
+    target = ['科技最前线']
+    UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
+
     for t in target:
-        time.sleep(5)
+        # time.sleep(random.randint(0,9))
         weixin_log.info(t + " : task start")
         url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(
             parse.quote(t))
         try:
-            html = get_article(url, UserAgent)
+            response = get_response(url, UserAgent)
+            html = etree.HTML(response.text)
         except:
             weixin_log.error(t + " : Failed get article")
         else:
             if not_in_scrapedUrls(t, article_time):
+                save_html(response, t, article_time)
+
                 title = html.xpath('//meta[@property="og:title"]/@content')[0]
                 contexts = html.xpath('//*[@id="js_content"]')
                 text = contexts[0].xpath('string(.)').strip()
@@ -218,13 +325,14 @@ def start_process():
 
 
 if __name__ == "__main__":
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(start_process, 'interval', minutes=1)
-    try:
-        # scheduler.remove_all_jobs()
-        scheduler.start()
-    except (KeyboardInterrupt, SystemExit):
-        pass
+    # scheduler = BackgroundScheduler()
+    # scheduler.add_job(start_process, 'interval', minutes=1)
+    # try:
+    #     # scheduler.remove_all_jobs()
+    #     scheduler.start()
+    # except (KeyboardInterrupt, SystemExit):
+    #     pass
+    start_process()
 
 
 

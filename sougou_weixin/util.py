@@ -1,4 +1,6 @@
 import datetime
+import random
+
 from api.models import Target, ScrapedUrls
 from api.serializers import TargetSerializer, ScrapedUrlsSerializer
 
@@ -48,3 +50,13 @@ def add_scrapedUrls(target, time):
     serializer = ScrapedUrlsSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
+
+
+# 产生N位随机数
+def n_digits_random(n):
+    seeds = "1234567890"
+    random_num = []
+    for i in range(n):
+        random_num.append(random.choice(seeds))
+    # 将列表里的值，变成四位字符串
+    return "" . join(random_num)

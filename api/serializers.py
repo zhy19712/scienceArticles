@@ -13,12 +13,16 @@ class ArticleSerializer(serializers.ModelSerializer):
             title = validated_data['title']
             time = validated_data['time']
             text = validated_data['text']
+            filepath = validated_data['filepath']
+            belong = validated_data['belong']
             article = Article.objects.create(
                 source=source,
                 url=url,
                 title=title,
                 time=time,
-                text=text
+                text=text,
+                filepath=filepath,
+                belong=belong
             )
             return article
 
@@ -28,11 +32,15 @@ class ArticleSerializer(serializers.ModelSerializer):
             title = validated_data['title']
             time = validated_data['time']
             text = validated_data['text']
+            filepath = validated_data['filepath']
+            belong = validated_data['belong']
             instance.source = source
             instance.title = title
             instance.url = url
             instance.time = time
             instance.text = text
+            instance.belong = belong
+            instance.filepath = filepath
             instance.save()
             return instance
 
@@ -70,11 +78,14 @@ class TargetSerializer(serializers.ModelSerializer):
             name = validated_data['name']
             type = validated_data['type']
             remark = validated_data['remark']
+            belong = validated_data['belong']
+
             target = Target.objects.create(
                 url=url,
                 name=name,
                 type=type,
-                remark=remark
+                remark=remark,
+                belong=belong
             )
             return target
 
@@ -83,11 +94,12 @@ class TargetSerializer(serializers.ModelSerializer):
             name = validated_data['name']
             type = validated_data['type']
             remark = validated_data['remark']
-
+            belong = validated_data['belong']
             instance.name = name
             instance.url = url
             instance.type = type
             instance.remark = remark
+            instance.belong = belong
             instance.save()
             return instance
 

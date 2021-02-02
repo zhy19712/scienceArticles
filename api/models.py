@@ -9,14 +9,19 @@ class User(models.Model):
     token = models.CharField(max_length=255)
 
 
-class Target(models.Model):
-    url = models.CharField(max_length=255)
+class Center(models.Model):
     name = models.CharField(max_length=255)
-    type = models.IntegerField()
+    uid  = models.IntegerField()
+
+
+class Target(models.Model):
+    url = models.CharField(max_length=255, null=True)
+    name = models.CharField(max_length=255, null=True)
+    type = models.IntegerField(null=True)
     remark = models.CharField(max_length=255, null=True)
-    status = models.IntegerField()
+    status = models.IntegerField(null=True)
     last_crawled_time = models.CharField(max_length=255, null=True)
-    last_crawled_time = models.IntegerField()
+    belong = models.CharField(max_length=255, null=True)
 
 
 class Article(models.Model):
@@ -25,6 +30,8 @@ class Article(models.Model):
     title = models.CharField(max_length=255)
     time = models.CharField(max_length=255, null=True)
     text = models.TextField(null=True)
+    filepath = models.CharField(max_length=255, null=True)
+    belong = models.CharField(max_length=255, null=True)
 
 
 class Keyword(models.Model):
