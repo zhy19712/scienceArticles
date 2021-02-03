@@ -1,15 +1,15 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers import ArticleSerializer
-from api.models import Article
+from api.serializers import KeywordSerializer
+from api.models import Keyword
 
 
-class ArticleView(APIView):
+class KeywordView(APIView):
     def post(self, request):
         print(request.data)
 
-        serializer = ArticleSerializer(data=request.data)
+        serializer = KeywordSerializer(data=request.data)
         if serializer.is_valid():
             article = serializer.save()
             response = {
@@ -21,20 +21,34 @@ class ArticleView(APIView):
             return Response(serializer.errors)
 
     def get(self, request):
-        article = Article.objects.all()
-        serializer = ArticleSerializer(article, many=True)
+        article = Keyword.objects.all()
+        serializer = KeywordSerializer(article, many=True)
         response = {
             'code': 1,
             'data': serializer.data,
         }
         return Response(response)
 
+    def put(self, request):
+        page = request.data['page']
+        size = request.data['size']
+        # count = request.data['count']
+        keyword = Keyword.objects.all()[(page-1)*size:page*size]
+        count = Keyword.objects.count()
+        serializer = KeywordSerializer(keyword, many=True)
+        response = {
+            'code': 1,
+            'data': serializer.data,
+            'count': count
+        }
+        return Response(response)
 
-class ArticleFilterView(APIView):
+
+class KeywordFilterView(APIView):
     def post(self, request):
         uid = request.data['id']
-        article = Article.objects.get(id=uid)
-        serializer = ArticleSerializer(article)
+        article = Keyword.objects.get(id=uid)
+        serializer = KeywordSerializer(article)
         if serializer:
             response = {
                 'code': 1,
@@ -47,7 +61,7 @@ class ArticleFilterView(APIView):
     def put(self, request):
         uid = request.data['id']
         try:
-            article = Article.objects.get(id=uid)
+            article = Keyword.objects.get(id=uid)
         except:
             response = {
                 'code': 0,
@@ -55,7 +69,7 @@ class ArticleFilterView(APIView):
             }
             return Response(response)
         else:
-            serializer = ArticleSerializer(data=request.data, instance=article)
+            serializer = KeywordSerializer(data=request.data, instance=article)
             if serializer.is_valid():
                 serializer.save()
                 response = {
@@ -69,7 +83,7 @@ class ArticleFilterView(APIView):
     def delete(self, request):
         uid = request.data['id']
         try:
-            Article.objects.get(id=uid).delete()
+            Keyword.objects.get(id=uid).delete()
         except:
             response = {
                 'code': 0,

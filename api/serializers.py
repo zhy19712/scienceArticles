@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Keyword, ScrapedUrls, Article, Target
+from api.models import Keyword, ScrapedUrls, Article, Target, Center, Category
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -8,38 +8,38 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = '__all__'  # 要序列化的字段
 
         def create(self, validated_data):
-            source = validated_data['source']
+            target = validated_data['target']
             url = validated_data['url']
             title = validated_data['title']
             time = validated_data['time']
             text = validated_data['text']
             filepath = validated_data['filepath']
-            belong = validated_data['belong']
+            keyword_id = validated_data['keyword_id']
             article = Article.objects.create(
-                source=source,
+                target=target,
                 url=url,
                 title=title,
                 time=time,
                 text=text,
                 filepath=filepath,
-                belong=belong
+                keyword_id=keyword_id
             )
             return article
 
         def update(self, instance, validated_data):
-            source = validated_data['source']
+            target = validated_data['target']
             url = validated_data['url']
             title = validated_data['title']
             time = validated_data['time']
             text = validated_data['text']
             filepath = validated_data['filepath']
-            belong = validated_data['belong']
-            instance.source = source
+            keyword_id = validated_data['keyword_id']
+            instance.target = target
             instance.title = title
             instance.url = url
             instance.time = time
             instance.text = text
-            instance.belong = belong
+            instance.keyword_id = keyword_id
             instance.filepath = filepath
             instance.save()
             return instance
@@ -51,19 +51,33 @@ class KeywordSerializer(serializers.ModelSerializer):
         fields = '__all__'  # 要序列化的字段
 
         def create(self, validated_data):
+            center_id = validated_data['center_id']
+            category_id = validated_data['category_id']
             keyword = validated_data['keyword']
             type = validated_data['type']
+            status = validated_data['status']
+
             article = Article.objects.create(
+                center_id=center_id,
+                category_id=category_id,
                 keyword=keyword,
                 type=type,
+                status=status,
             )
             return article
 
         def update(self, instance, validated_data):
-            keyword = validated_data['url']
-            type = validated_data['title']
+            center_id = validated_data['center_id']
+            category_id = validated_data['category_id']
+            keyword = validated_data['keyword']
+            type = validated_data['type']
+            status = validated_data['status']
+
+            instance.center_id = center_id
+            instance.category_id = category_id
             instance.keyword = keyword
             instance.type = type
+            instance.status = status
             instance.save()
             return instance
 
@@ -74,32 +88,58 @@ class TargetSerializer(serializers.ModelSerializer):
         fields = '__all__'  # 要序列化的字段
 
         def create(self, validated_data):
-            url = validated_data['url']
-            name = validated_data['name']
+            center_id = validated_data['center_id']
+            target = validated_data['target']
             type = validated_data['type']
             remark = validated_data['remark']
-            belong = validated_data['belong']
+            status = validated_data['status']
 
             target = Target.objects.create(
-                url=url,
-                name=name,
+                center_id=center_id,
+                target=target,
                 type=type,
                 remark=remark,
-                belong=belong
+                status=status
             )
             return target
 
         def update(self, instance, validated_data):
-            url = validated_data['url']
-            name = validated_data['name']
+            center_id = validated_data['center_id']
+            target = validated_data['target']
             type = validated_data['type']
             remark = validated_data['remark']
-            belong = validated_data['belong']
-            instance.name = name
-            instance.url = url
+            status = validated_data['status']
+
+            instance.center_id = center_id
+            instance.target = target
             instance.type = type
             instance.remark = remark
-            instance.belong = belong
+            instance.status = status
+            instance.save()
+            return instance
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category  # 要序列化的模型
+        fields = '__all__'  # 要序列化的字段
+
+        def create(self, validated_data):
+            center_id = validated_data['center_id']
+            category = validated_data['category']
+
+            category = Category.objects.create(
+                center_id=center_id,
+                category=category
+            )
+            return category
+
+        def update(self, instance, validated_data):
+            center_id = validated_data['center_id']
+            category = validated_data['category']
+
+            instance.center_id = center_id
+            instance.category = category
             instance.save()
             return instance
 

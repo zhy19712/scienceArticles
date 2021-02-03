@@ -29,6 +29,20 @@ class TargetView(APIView):
         }
         return Response(response)
 
+    def put(self, request):
+        page = request.data['page']
+        size = request.data['size']
+        # count = request.data['count']
+        target = Target.objects.all()[(page-1)*size:page*size]
+        count = Target.objects.count()
+        serializer = TargetSerializer(target, many=True)
+        response = {
+            'code': 1,
+            'data': serializer.data,
+            'count': count
+        }
+        return Response(response)
+
 
 class TargetFilterView(APIView):
     def post(self, request):
