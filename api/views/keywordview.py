@@ -38,10 +38,12 @@ class KeywordView(APIView):
     def put(self, request):
         page = request.data['page']
         size = request.data['size']
-        # count = request.data['count']
-        keyword = Keyword.objects.all()[(page-1)*size:page*size]
-        count = Keyword.objects.count()
+        category_id = request.data['category_id']
+        keyword = Keyword.objects.filter(category_id=category_id)[(page-1)*size:page*size]
+        queryset = Keyword.objects.filter(category_id=category_id)
         serializer = KeywordSerializer(keyword, many=True)
+        queryset_serializer = KeywordSerializer(queryset, many=True)
+        count = len(queryset_serializer.data)
         response = {
             'code': 1,
             'data': serializer.data,
@@ -51,10 +53,11 @@ class KeywordView(APIView):
 
 
 class KeywordFilterView(APIView):
+    # 选择分类，获取分类下的关键字
     def post(self, request):
-        uid = request.data['id']
-        keyword = Keyword.objects.get(id=uid)
-        serializer = KeywordSerializer(keyword)
+        category_id = request.data['category_id']
+        keyword = Keyword.objects.filter(category_id=category_id)
+        serializer = KeywordSerializer(keyword, many=True)
         if serializer:
             response = {
                 'code': 1,

@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from logger import logger
 from serializers import ArticleSerializer
 from settings import BASE_DIR
-from util import timestamp2string, not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target
+from util import timestamp2string, not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, match_keyword
 import logging
 import re
 import random
@@ -287,41 +287,43 @@ def start_process():
     print(target)
     # target = ['科技最前线']
     UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
+    match_keyword(1,"控制器的机器人三")
 
-    for t in target:
-        # time.sleep(random.randint(0,9))
-        weixin_log.info(t + " : task start")
-        url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(
-            parse.quote(t))
-        try:
-            response = get_response(url, UserAgent)
-            html = etree.HTML(response.text)
-        except:
-            weixin_log.error(t + " : Failed get article")
-        else:
-            if not_in_scrapedUrls(t, article_time):
-                save_html(response, t, article_time)
 
-                title = html.xpath('//meta[@property="og:title"]/@content')[0]
-                contexts = html.xpath('//*[@id="js_content"]')
-                text = contexts[0].xpath('string(.)').strip()
-
-                article = {
-                    "source": t,
-                    "url": article_url,
-                    "title": title,
-                    "time": article_time,
-                    "text": text
-                }
-                serializer = ArticleSerializer(data=article)
-                if serializer.is_valid():
-                    serializer.save()
-                    add_scrapedUrls(t, article_time)
-                    weixin_log.info("task completed")
-                else:
-                    weixin_log.error("failed save to database")
-            else:
-                weixin_log.info("article already exists, pass")
+    # for t in target:
+    #     # time.sleep(random.randint(0,9))
+    #     weixin_log.info(t + " : task start")
+    #     url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(
+    #         parse.quote(t))
+    #     try:
+    #         response = get_response(url, UserAgent)
+    #         html = etree.HTML(response.text)
+    #     except:
+    #         weixin_log.error(t + " : Failed get article")
+    #     else:
+    #         if not_in_scrapedUrls(t, article_time):
+    #             save_html(response, t, article_time)
+    #
+    #             title = html.xpath('//meta[@property="og:title"]/@content')[0]
+    #             contexts = html.xpath('//*[@id="js_content"]')
+    #             text = contexts[0].xpath('string(.)').strip()
+    #
+    #             article = {
+    #                 "source": t,
+    #                 "url": article_url,
+    #                 "title": title,
+    #                 "time": article_time,
+    #                 "text": text
+    #             }
+    #             serializer = ArticleSerializer(data=article)
+    #             if serializer.is_valid():
+    #                 serializer.save()
+    #                 add_scrapedUrls(t, article_time)
+    #                 weixin_log.info("task completed")
+    #             else:
+    #                 weixin_log.error("failed save to database")
+    #         else:
+    #             weixin_log.info("article already exists, pass")
 
 
 if __name__ == "__main__":

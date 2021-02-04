@@ -1,8 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers import ArticleSerializer
-from api.models import Article
+from api.serializers import ArticleSerializer, KeywordArticleSerializer
+from api.models import Article, KeywordArticle
 
 
 class ArticleView(APIView):
@@ -32,14 +32,23 @@ class ArticleView(APIView):
     def put(self, request):
         page = request.data['page']
         size = request.data['size']
+        keyword_id = request.data['keyword_id']
+        article_id = []
+        queryset = KeywordArticle.objects.filter(keyword_id=keyword_id)
+        serializer = KeywordArticleSerializer(queryset, many=True)
+        for row in serializer.data:
+            article_id.append(row['article_id'])
+
+        print(article_id)
+
         # count = request.data['count']
-        article = Article.objects.all()[(page-1)*size:page*size]
-        count = Article.objects.count()
+        article = Article.objects.filter(id__in=article_id)[(page-1)*size:page*size]
+
         serializer = ArticleSerializer(article, many=True)
         response = {
             'code': 1,
             'data': serializer.data,
-            'count': count
+            'count': 0
         }
         return Response(response)
 

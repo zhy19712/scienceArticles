@@ -33,7 +33,6 @@ class Article(models.Model):
     time = models.CharField(max_length=255, null=True)
     text = models.TextField(null=True)
     filepath = models.CharField(max_length=255, null=True)
-    keyword_id = models.TextField(null=True)
 
 
 class Keyword(models.Model):
@@ -46,3 +45,8 @@ class Keyword(models.Model):
 class ScrapedUrls(models.Model):
     target = models.CharField(max_length=255, null=True)
     time = models.CharField(max_length=255, null=True)
+
+
+class KeywordArticle(models.Model):
+    keyword_id = models.IntegerField()
+    article_id = models.IntegerField()

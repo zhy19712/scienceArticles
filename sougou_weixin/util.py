@@ -1,22 +1,19 @@
 import datetime
 import random
 
-from api.models import Target, ScrapedUrls
-from api.serializers import TargetSerializer, ScrapedUrlsSerializer
+from api.models import Target, ScrapedUrls, Keyword
+from api.serializers import TargetSerializer, ScrapedUrlsSerializer, KeywordSerializer, KeywordArticleSerializer
 
 
 # 获取爬取对象
 # target_type = 2 ：微信公众号 ['name1','name2']
 # target_type = 1 ：网站 ['url1','url2']
-def get_target(target_type):
+def get_target(type):
     target = []
-    queryset = Target.objects.filter(type=target_type, status=1).distinct()
+    queryset = Target.objects.filter(type=type, status=1).distinct()
     serializer = TargetSerializer(queryset, many=True)
     for row in serializer.data:
-        if target_type == 1:
-            target.append(row['url'])
-        else:
-            target.append(row['name'])
+            target.append(row['target'])
     return list(set(target))
 
 
@@ -60,3 +57,24 @@ def n_digits_random(n):
         random_num.append(random.choice(seeds))
     # 将列表里的值，变成四位字符串
     return "" . join(random_num)
+
+
+def match_keyword(type, content):
+    keyword = []
+    queryset = Keyword.objects.filter(type=type, status=1)
+    serializer = KeywordSerializer(queryset, many=True)
+    for row in serializer.data:
+        keyword.append({'keyword':row['keyword'],'keyword_id':row['id']})
+
+    for word in keyword:
+        if word['keyword'] in content:
+            data = {
+                "keyword_id" : word['keyword_id'],
+                "article_id" : 2
+            }
+            serializer = KeywordArticleSerializer(data=data)
+            print(data)
+            if serializer.is_valid():
+                serializer.save()
+
+

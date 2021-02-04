@@ -38,10 +38,12 @@ class CategoryView(APIView):
     def put(self, request):
         page = request.data['page']
         size = request.data['size']
-        # count = request.data['count']
-        category = Category.objects.all()[(page-1)*size:page*size]
-        count = Category.objects.count()
+        center_id = request.data['center_id']
+        category = Category.objects.filter(center_id=center_id)[(page-1)*size:page*size]
+        queryset = Category.objects.filter(center_id=center_id)
         serializer = CategorySerializer(category, many=True)
+        queryset_serializer = CategorySerializer(queryset, many=True)
+        count = len(queryset_serializer.data)
         response = {
             'code': 1,
             'data': serializer.data,
@@ -51,6 +53,7 @@ class CategoryView(APIView):
 
 
 class CategoryFilterView(APIView):
+    # 选择中心，获取该中心下的分类
     def post(self, request):
         center_id = request.data['center_id']
         category = Category.objects.filter(center_id=center_id)

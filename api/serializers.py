@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Keyword, ScrapedUrls, Article, Target, Center, Category
+from api.models import Keyword, ScrapedUrls, Article, Target, Center, Category, KeywordArticle
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -14,7 +14,6 @@ class ArticleSerializer(serializers.ModelSerializer):
             time = validated_data['time']
             text = validated_data['text']
             filepath = validated_data['filepath']
-            keyword_id = validated_data['keyword_id']
             article = Article.objects.create(
                 target=target,
                 url=url,
@@ -22,7 +21,6 @@ class ArticleSerializer(serializers.ModelSerializer):
                 time=time,
                 text=text,
                 filepath=filepath,
-                keyword_id=keyword_id
             )
             return article
 
@@ -33,13 +31,11 @@ class ArticleSerializer(serializers.ModelSerializer):
             time = validated_data['time']
             text = validated_data['text']
             filepath = validated_data['filepath']
-            keyword_id = validated_data['keyword_id']
             instance.target = target
             instance.title = title
             instance.url = url
             instance.time = time
             instance.text = text
-            instance.keyword_id = keyword_id
             instance.filepath = filepath
             instance.save()
             return instance
@@ -154,3 +150,10 @@ class CenterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Center  # 要序列化的模型
         fields = '__all__'  # 要序列化的字段
+
+
+class KeywordArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KeywordArticle  # 要序列化的模型
+        fields = '__all__'  # 要序列化的字段
+
