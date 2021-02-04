@@ -148,3 +148,9 @@ class ScrapedUrlsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScrapedUrls  # 要序列化的模型
         fields = '__all__'  # 要序列化的字段
+
+
+class CenterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Center  # 要序列化的模型
+        fields = '__all__'  # 要序列化的字段

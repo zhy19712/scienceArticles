@@ -7,16 +7,22 @@ from api.models import Keyword, Category
 
 class KeywordView(APIView):
     def post(self, request):
-        print(request.data)
-
         serializer = KeywordSerializer(data=request.data)
+
         if serializer.is_valid():
-            article = serializer.save()
-            response = {
-                'code': 1,
-                'data': serializer.data,
-            }
-            return Response(response)
+            if not Keyword.objects.filter(keyword=request.data['keyword']):
+                keyword = serializer.save()
+                response = {
+                    'code': 1,
+                    'data': serializer.data,
+                }
+                return Response(response)
+            else:
+                response = {
+                    'code': 1,
+                    'data': ['关键字已存在']
+                }
+                return Response(response)
         else:
             return Response(serializer.errors)
 

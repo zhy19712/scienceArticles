@@ -52,9 +52,9 @@ class CategoryView(APIView):
 
 class CategoryFilterView(APIView):
     def post(self, request):
-        uid = request.data['id']
-        category = Category.objects.get(id=uid)
-        serializer = CategorySerializer(category)
+        center_id = request.data['center_id']
+        category = Category.objects.filter(center_id=center_id)
+        serializer = CategorySerializer(category, many=True)
         if serializer:
             response = {
                 'code': 1,

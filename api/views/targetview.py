@@ -7,16 +7,22 @@ from api.models import Target
 
 class TargetView(APIView):
     def post(self, request):
-        print(request.data)
 
         serializer = TargetSerializer(data=request.data)
         if serializer.is_valid():
-            target = serializer.save()
-            response = {
-                'code': 1,
-                'data': serializer.data,
-            }
-            return Response(response)
+            if not Target.objects.filter(target=request.data['target']):
+                target = serializer.save()
+                response = {
+                    'code': 1,
+                    'data': serializer.data,
+                }
+                return Response(response)
+            else:
+                response = {
+                    'code': 1,
+                    'data': ['目标已存在']
+                }
+                return Response(response)
         else:
             return Response(serializer.errors)
 
