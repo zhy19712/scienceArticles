@@ -19,11 +19,11 @@ class Category(models.Model):
 
 
 class Target(models.Model):
-    center_id = models.IntegerField(null=True)
-    target = models.CharField(max_length=255, null=True)
-    type = models.IntegerField(null=True)
+    center_id = models.IntegerField()
+    target = models.CharField(max_length=255)
+    type = models.IntegerField()
     remark = models.CharField(max_length=255, null=True)
-    status = models.IntegerField(null=True)
+    status = models.IntegerField()
 
 
 class Article(models.Model):
@@ -37,11 +37,10 @@ class Article(models.Model):
 
 
 class Keyword(models.Model):
-    center_id = models.IntegerField(null=True)
-    category_id = models.IntegerField(null=True)
-    keyword = models.CharField(max_length=255, null=True)
-    type = models.IntegerField(null=True)
-    status = models.IntegerField(null=True)
+    category_id = models.IntegerField()
+    keyword = models.CharField(max_length=255)
+    type = models.IntegerField()
+    status = models.IntegerField()
 
 
 class ScrapedUrls(models.Model):

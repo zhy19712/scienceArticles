@@ -1,8 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers import KeywordSerializer
-from api.models import Keyword
+from api.serializers import KeywordSerializer, CategorySerializer
+from api.models import Keyword, Category
 
 
 class KeywordView(APIView):
@@ -47,8 +47,8 @@ class KeywordView(APIView):
 class KeywordFilterView(APIView):
     def post(self, request):
         uid = request.data['id']
-        article = Keyword.objects.get(id=uid)
-        serializer = KeywordSerializer(article)
+        keyword = Keyword.objects.get(id=uid)
+        serializer = KeywordSerializer(keyword)
         if serializer:
             response = {
                 'code': 1,
@@ -61,7 +61,7 @@ class KeywordFilterView(APIView):
     def put(self, request):
         uid = request.data['id']
         try:
-            article = Keyword.objects.get(id=uid)
+            keyword = Keyword.objects.get(id=uid)
         except:
             response = {
                 'code': 0,
@@ -69,7 +69,7 @@ class KeywordFilterView(APIView):
             }
             return Response(response)
         else:
-            serializer = KeywordSerializer(data=request.data, instance=article)
+            serializer = KeywordSerializer(data=request.data, instance=keyword, many=True)
             if serializer.is_valid():
                 serializer.save()
                 response = {
@@ -97,3 +97,23 @@ class KeywordFilterView(APIView):
             }
             return Response(response)
 
+
+class KeywordTreeView(APIView):
+    def post(self, request):
+        center_id = request.data['center_id']
+        category = Category.objects.filter(center_id=center_id)
+        category_serializer = CategorySerializer(category, many=True)
+        data = []
+        for cate in category_serializer.data:
+            children = []
+            keyword = Keyword.objects.filter(category_id=cate['id'])
+            keyword_serializer = KeywordSerializer(keyword, many=True)
+            for key in keyword_serializer.data:
+                children.append({'label':key['keyword'],'keyword_id':key['id']})
+            data.append({'label':cate['category'], 'children':children})
+
+        response = {
+            'code': 1,
+            'data': data,
+        }
+        return Response(response)
