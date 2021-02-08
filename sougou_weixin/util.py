@@ -1,5 +1,6 @@
 import datetime
 import random
+from urllib.parse import urlsplit
 
 from api.models import Target, ScrapedUrls, Keyword
 from api.serializers import TargetSerializer, ScrapedUrlsSerializer, KeywordSerializer, KeywordArticleSerializer
@@ -32,7 +33,7 @@ def timestamp2string(timeStamp):
 
 # 判断文章是否已经存在
 def not_in_scrapedUrls(target, time):
-    queryset = ScrapedUrls.objects.filter(name=target, time=time)
+    queryset = ScrapedUrls.objects.filter(target=target, time=time)
     if queryset:
         return False
     return True
@@ -41,7 +42,7 @@ def not_in_scrapedUrls(target, time):
 # 标记已入库文章
 def add_scrapedUrls(target, time):
     data = {
-        'name': target,
+        'target': target,
         'time': time
     }
     serializer = ScrapedUrlsSerializer(data=data)
@@ -59,22 +60,20 @@ def n_digits_random(n):
     return "" . join(random_num)
 
 
-def match_keyword(type, content):
+def get_keyword():
     keyword = []
-    queryset = Keyword.objects.filter(type=type, status=1)
+    queryset = Keyword.objects.filter(status=1)
     serializer = KeywordSerializer(queryset, many=True)
     for row in serializer.data:
         keyword.append({'keyword':row['keyword'],'keyword_id':row['id']})
+    return keyword
 
-    for word in keyword:
-        if word['keyword'] in content:
-            data = {
-                "keyword_id" : word['keyword_id'],
-                "article_id" : 2
-            }
-            serializer = KeywordArticleSerializer(data=data)
-            print(data)
-            if serializer.is_valid():
-                serializer.save()
 
+def get_host(request):
+    http = urlsplit(request.build_absolute_uri(None)).scheme
+    # 获得当前的HTTP或HTTPS
+    host = request.META['HTTP_HOST']
+    # 获取当前域名
+    base_url = http + '://' + host + '/'
+    return base_url
 

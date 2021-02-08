@@ -1,8 +1,12 @@
+from urllib.parse import urlsplit
+
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.serializers import ArticleSerializer, KeywordArticleSerializer
 from api.models import Article, KeywordArticle
+from sougou_weixin.util import get_host
 
 
 class ArticleView(APIView):
@@ -29,46 +33,65 @@ class ArticleView(APIView):
         }
         return Response(response)
 
+    # 通过keyword_id查询关键字所对应的文章
     def put(self, request):
-        page = request.data['page']
-        size = request.data['size']
-        keyword_id = request.data['keyword_id']
+        if 'page' in request.data.keys():
+            page = request.data['page']
+        if 'size' in request.data.keys():
+            size = request.data['size']
+        if 'keyword_id' in request.data.keys():
+            keyword_id = request.data['keyword_id']
         article_id = []
         queryset = KeywordArticle.objects.filter(keyword_id=keyword_id)
         serializer = KeywordArticleSerializer(queryset, many=True)
         for row in serializer.data:
             article_id.append(row['article_id'])
 
-        print(article_id)
-
-        # count = request.data['count']
         article = Article.objects.filter(id__in=article_id)[(page-1)*size:page*size]
+        article_all = Article.objects.filter(id__in=article_id)
 
         serializer = ArticleSerializer(article, many=True)
+        serializer_all = ArticleSerializer(article_all, many=True)
+        count = len(serializer_all.data)
+
         response = {
             'code': 1,
             'data': serializer.data,
-            'count': 0
+            'count': count
         }
         return Response(response)
 
 
 class ArticleFilterView(APIView):
     def post(self, request):
-        uid = request.data['id']
-        article = Article.objects.get(id=uid)
+        if 'article_id' in request.data.keys():
+            article_id = request.data['article_id']
+        if 'type' in request.data.keys():
+            type = request.data['type']
+        article = Article.objects.get(id=article_id)
         serializer = ArticleSerializer(article)
         if serializer:
-            response = {
-                'code': 1,
-                'data': serializer.data,
-            }
-            return Response(response)
+            if type == 'text':
+                response = {
+                    'code': 1,
+                    'data': serializer.data
+                }
+                return Response(response)
+            elif type == 'html':
+                base_url = get_host(request)
+                response = {
+                    'code': 1,
+                    'data': base_url + serializer.data['filepath']
+                }
+                return Response(response)
         else:
             return Response(serializer.errors)
 
+
+
     def put(self, request):
-        uid = request.data['id']
+        if 'uid' in request.data.keys():
+            uid = request.data['uid']
         try:
             article = Article.objects.get(id=uid)
         except:
@@ -90,7 +113,8 @@ class ArticleFilterView(APIView):
                 return Response(serializer.errors)
 
     def delete(self, request):
-        uid = request.data['id']
+        if 'uid' in request.data.keys():
+            uid = request.data['uid']
         try:
             Article.objects.get(id=uid).delete()
         except:
@@ -105,4 +129,22 @@ class ArticleFilterView(APIView):
                 'data': [],
             }
             return Response(response)
+
+
+class GlobalSearchView(APIView):
+    def post(self,request):
+        if 'start_date' in request.data.keys():
+            start_date = request.data['start_date']
+        if 'end_date' in request.data.keys():
+            end_date = request.data['end_date']
+        if 'keyword' in request.data.keys():
+            keyword = request.data['keyword']
+
+
+        response = {
+            'code': 1,
+            'data': [start_date,end_date,keyword],
+        }
+        return Response(response)
+
 

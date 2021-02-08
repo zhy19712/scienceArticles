@@ -25,7 +25,7 @@ SECRET_KEY = 'xpt2%+^1$d_^6pp($7*j_nl6%371(quig(-l&!zh2rqoocf@m&'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -167,3 +167,5 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
 )
 
+STATIC_URL = '/local/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'local'), ]
