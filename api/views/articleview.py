@@ -1,5 +1,7 @@
+import datetime
 from urllib.parse import urlsplit
 
+from django.db.models import Q
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -133,17 +135,23 @@ class ArticleFilterView(APIView):
 
 class GlobalSearchView(APIView):
     def post(self,request):
-        if 'start_date' in request.data.keys():
-            start_date = request.data['start_date']
-        if 'end_date' in request.data.keys():
-            end_date = request.data['end_date']
-        if 'keyword' in request.data.keys():
-            keyword = request.data['keyword']
+        start_date = request.data['start_date']
+        end_date = request.data['end_date']
+        keyword = request.data['keyword']
 
+        if len(keyword.strip()) == 0:
+            article = Article.objects.filter(time__range=(start_date+" 00:00:00", end_date+" 23:59:59"))
+            serializer = ArticleSerializer(article, many=True)
+        elif len(start_date.strip()) == 0 or len(end_date.strip()) == 0:
+            article = Article.objects.filter(Q(title__icontains=keyword) | Q(text__icontains=keyword))
+            serializer = ArticleSerializer(article, many=True)
+        else:
+            article = Article.objects.filter(Q(title__icontains=keyword) | Q(text__icontains=keyword), time__range=(start_date + " 00:00:00", end_date + " 23:59:59"))
+            serializer = ArticleSerializer(article, many=True)
 
         response = {
             'code': 1,
-            'data': [start_date,end_date,keyword],
+            'data': serializer.data,
         }
         return Response(response)
 

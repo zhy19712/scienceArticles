@@ -8,7 +8,8 @@ from logger import logger
 from api.models import Keyword
 from serializers import ArticleSerializer, KeywordSerializer, KeywordArticleSerializer
 from settings import BASE_DIR
-from util import timestamp2string, not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, get_keyword
+from util import timestamp2string, not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, get_keyword, \
+    timestamp2date
 import logging
 import re
 import random
@@ -158,7 +159,8 @@ def get_response(list_url, UserAgent):
         re.findall('\d+', html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/span/script/text()')[0])[0])
     # timestamp = html.xpath('//*[@id="sogou_vr_11002301_box_0"]/dl[3]/dd/span/script/text()')
     global article_time
-    article_time = timestamp2string(timestamp)
+    # article_time = timestamp2string(timestamp)
+    article_time = timestamp2date(timestamp)
 
     uigs_para = get_uigs_para(response1)
     # print(uigs_para)
@@ -355,6 +357,6 @@ if __name__ == "__main__":
     # try:
     #     # scheduler.remove_all_jobs()
     #     scheduler.start()
-    # except (KeyboardInterrupt, SystemExit):
+    # except (KeyboardInterrupt, System Exit):
     #     pass
     start_process()

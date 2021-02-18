@@ -6,6 +6,7 @@ from api.models import Keyword, Category
 
 
 class KeywordView(APIView):
+    # 新增关键字
     def post(self, request):
         serializer = KeywordSerializer(data=request.data)
 
@@ -26,6 +27,7 @@ class KeywordView(APIView):
         else:
             return Response(serializer.errors)
 
+    # 获取所有关键字
     def get(self, request):
         article = Keyword.objects.all()
         serializer = KeywordSerializer(article, many=True)
@@ -35,6 +37,7 @@ class KeywordView(APIView):
         }
         return Response(response)
 
+    # 获取分类下的关键字并分页
     def put(self, request):
         page = request.data['page']
         size = request.data['size']
@@ -54,10 +57,22 @@ class KeywordView(APIView):
 
 class KeywordFilterView(APIView):
     # 选择分类，获取分类下的关键字
+    # 获取对应id的关键字
     def post(self, request):
-        category_id = request.data['category_id']
-        keyword = Keyword.objects.filter(category_id=category_id)
-        serializer = KeywordSerializer(keyword, many=True)
+        if 'id' in request.data.keys():
+            id = request.data['id']
+            keyword = Keyword.objects.get(id=id)
+            serializer = KeywordSerializer(keyword)
+        elif 'category_id' in request.data.keys():
+            category_id = request.data['category_id']
+            keyword = Keyword.objects.filter(category_id=category_id)
+            serializer = KeywordSerializer(keyword, many=True)
+        else:
+            response = {
+                'code': 0,
+                'data': ['id or category_id is required'],
+            }
+            return Response(response)
         if serializer:
             response = {
                 'code': 1,
@@ -67,6 +82,7 @@ class KeywordFilterView(APIView):
         else:
             return Response(serializer.errors)
 
+    # 编辑
     def put(self, request):
         uid = request.data['id']
         try:
@@ -78,7 +94,7 @@ class KeywordFilterView(APIView):
             }
             return Response(response)
         else:
-            serializer = KeywordSerializer(data=request.data, instance=keyword, many=True)
+            serializer = KeywordSerializer(data=request.data, instance=keyword)
             if serializer.is_valid():
                 serializer.save()
                 response = {
@@ -88,7 +104,7 @@ class KeywordFilterView(APIView):
                 return Response(response)
             else:
                 return Response(serializer.errors)
-
+    # 删除
     def delete(self, request):
         uid = request.data['id']
         try:

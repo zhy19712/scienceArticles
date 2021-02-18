@@ -47,32 +47,24 @@ class KeywordSerializer(serializers.ModelSerializer):
         fields = '__all__'  # 要序列化的字段
 
         def create(self, validated_data):
-            center_id = validated_data['center_id']
             category_id = validated_data['category_id']
             keyword = validated_data['keyword']
-            type = validated_data['type']
             status = validated_data['status']
 
-            article = Article.objects.create(
-                center_id=center_id,
+            keyword = Keyword.objects.create(
                 category_id=category_id,
                 keyword=keyword,
-                type=type,
                 status=status,
             )
-            return article
+            return keyword
 
         def update(self, instance, validated_data):
-            center_id = validated_data['center_id']
             category_id = validated_data['category_id']
             keyword = validated_data['keyword']
-            type = validated_data['type']
             status = validated_data['status']
 
-            instance.center_id = center_id
             instance.category_id = category_id
             instance.keyword = keyword
-            instance.type = type
             instance.status = status
             instance.save()
             return instance

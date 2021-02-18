@@ -31,6 +31,13 @@ def timestamp2string(timeStamp):
         return ''
 
 
+# 时间戳转时间
+def timestamp2date(timeStamp):
+    dateArray = datetime.datetime.utcfromtimestamp(timeStamp)
+    otherStyleTime = dateArray.strftime("%Y-%m-%d %H:%M:%S")
+    return  otherStyleTime
+
+
 # 判断文章是否已经存在
 def not_in_scrapedUrls(target, time):
     queryset = ScrapedUrls.objects.filter(target=target, time=time)

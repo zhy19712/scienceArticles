@@ -30,7 +30,7 @@ class Article(models.Model):
     target = models.CharField(max_length=255, null=True)
     url = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
-    time = models.CharField(max_length=255, null=True)
+    time = models.DateTimeField(null=True)
     text = models.TextField(null=True)
     filepath = models.CharField(max_length=255, null=True)
 
@@ -38,7 +38,6 @@ class Article(models.Model):
 class Keyword(models.Model):
     category_id = models.IntegerField()
     keyword = models.CharField(max_length=255)
-    type = models.IntegerField()
     status = models.IntegerField()
 
 
