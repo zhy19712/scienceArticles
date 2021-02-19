@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Keyword, ScrapedUrls, Article, Target, Center, Category, KeywordArticle
+from api.models import Keyword, ScrapedUrls, Article, Target, Center, Category, KeywordArticle, User
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -148,4 +148,44 @@ class KeywordArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = KeywordArticle  # 要序列化的模型
         fields = '__all__'  # 要序列化的字段
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User  # 要序列化的模型
+        fields = '__all__'  # 要序列化的字段
+
+        def create(self, validated_data):
+            username = validated_data['username']
+            password = validated_data['password']
+            token = validated_data['token']
+            status = validated_data['status']
+            avatar = validated_data['avatar']
+            center_id = validated_data['center_id']
+            user = User.objects.create(
+                username=username,
+                password=password,
+                token=token,
+                status=status,
+                avatar=avatar,
+                center_id=center_id,
+            )
+            return user
+
+        def update(self, instance, validated_data):
+            username = validated_data['username']
+            password = validated_data['password']
+            token = validated_data['token']
+            status = validated_data['status']
+            avatar = validated_data['avatar']
+            center_id = validated_data['center_id']
+            instance.username = username
+            instance.password = password
+            instance.token = token
+            instance.status = status
+            instance.avatar = avatar
+            instance.center_id = center_id
+            instance.save()
+            return instance
+
 

@@ -49,12 +49,10 @@ class ArticleView(APIView):
         for row in serializer.data:
             article_id.append(row['article_id'])
 
-        article = Article.objects.filter(id__in=article_id)[(page-1)*size:page*size]
-        article_all = Article.objects.filter(id__in=article_id)
+        article = Article.objects.filter(id__in=article_id).values('id','target','title','time')[(page-1)*size:page*size]
+        count = Article.objects.filter(id__in=article_id).count()
 
         serializer = ArticleSerializer(article, many=True)
-        serializer_all = ArticleSerializer(article_all, many=True)
-        count = len(serializer_all.data)
 
         response = {
             'code': 1,

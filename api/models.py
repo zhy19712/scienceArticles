@@ -4,9 +4,16 @@ from django.db import models
 
 
 class User(models.Model):
-    username = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
-    token = models.CharField(max_length=255)
+    username = models.CharField(max_length=255, null=True)
+    password = models.CharField(max_length=255, null=True)
+    token = models.CharField(max_length=255, null=True)
+    avatar = models.CharField(max_length=255, null=True)
+    status = models.IntegerField(null=True)
+    center_id = models.IntegerField(null=True)
+
+
+class System(models.Model):
+    scraped_interval = models.IntegerField()
 
 
 class Center(models.Model):
@@ -28,8 +35,8 @@ class Target(models.Model):
 
 class Article(models.Model):
     target = models.CharField(max_length=255, null=True)
-    url = models.CharField(max_length=255)
-    title = models.CharField(max_length=255)
+    url = models.CharField(max_length=255, null=True)
+    title = models.CharField(max_length=255, null=True)
     time = models.DateTimeField(null=True)
     text = models.TextField(null=True)
     filepath = models.CharField(max_length=255, null=True)

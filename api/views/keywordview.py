@@ -89,8 +89,8 @@ class KeywordFilterView(APIView):
             keyword = Keyword.objects.get(id=uid)
         except:
             response = {
-                'code': 0,
-                'data': [],
+                'code': 1,
+                'data': ['id不存在'],
             }
             return Response(response)
         else:
@@ -111,14 +111,14 @@ class KeywordFilterView(APIView):
             Keyword.objects.get(id=uid).delete()
         except:
             response = {
-                'code': 0,
-                'data': [],
+                'code': 1,
+                'data': ['id不存在'],
             }
             return Response(response)
         else:
             response = {
                 'code': 1,
-                'data': [],
+                'data': ['删除成功'],
             }
             return Response(response)
 

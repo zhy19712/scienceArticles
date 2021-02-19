@@ -169,3 +169,5 @@ CORS_ALLOW_HEADERS = (
 
 STATIC_URL = '/local/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'local'), ]
+
+SECRET_KEY = 'zhuang_yufei'
