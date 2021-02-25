@@ -18,7 +18,6 @@ class LoginView(APIView):
 
         try:
             user = User.objects.get(username=username, password=password)
-            print()
         except ObjectDoesNotExist:
             response = {
                 'code': 0,
@@ -26,7 +25,7 @@ class LoginView(APIView):
             }
             return Response(response)
         else:
-            data={
+            data = {
                 'token':token
             }
             serializer = UserSerializer(data=data, instance=user)
@@ -34,7 +33,7 @@ class LoginView(APIView):
                 serializer.save()
                 response = {
                     'code': 1,
-                    'data': {"token" : token}
+                    'data': {"token": token}
                 }
                 return Response(response)
             else:
@@ -51,16 +50,26 @@ class LoginView(APIView):
 class AdminInfoView(APIView):
     def post(self, request):
         token = request.data['token']
-        user = User.objects.get(token=token)
-        serializer = UserSerializer(user)
+        try:
+            user = User.objects.get(token=token)
+            serializer = UserSerializer(user)
+        except:
+            response = {
+                'code': 0,
+                'message': '用户信息失效，请重新登录！'
+            }
+            return Response(response)
+        else:
+            response = {
+                'code': 1,
+                'data': {"roles": ["admin"], "introduction": "I am a super administrator",
+                         "avatar": "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
+                         "name": serializer.data['username'],
+                         "center_id": serializer.data['center_id']},
+            }
+            return Response(response)
 
-        response = {
-            'code': 1,
-            'data': {"roles": ["admin"], "introduction": "I am a super administrator",
-                     "avatar": "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
-                     "name": serializer.data['username']},
-        }
-        return Response(response)
+
 
 
 class UserView(APIView):
@@ -137,6 +146,30 @@ class UserView(APIView):
                 'data': ['删除成功'],
             }
             return Response(response)
+
+class UserFilterView(APIView):
+    def post(self,request):
+        if 'id' in request.data:
+            uid = request.data['id']
+            user = User.objects.get(id=uid)
+            serializer = UserSerializer(user)
+            response = {
+                'code': 1,
+                'data': serializer.data
+            }
+            return Response(response)
+        elif 'center_id' in request.data:
+            center_id = request.data['center_id']
+            user = User.objects.filter(center_id=center_id)
+            serializer = UserSerializer(user,many=True)
+            response = {
+                'code': 1,
+                'data': serializer.data
+            }
+            return Response(response)
+
+
+
 
 
 
