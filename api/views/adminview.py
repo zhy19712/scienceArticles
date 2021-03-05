@@ -17,32 +17,41 @@ class LoginView(APIView):
         token = make_password(str(time.time()))
 
         try:
-            user = User.objects.get(username=username, password=password)
+            user = User.objects.get(username=username, status=0)
         except ObjectDoesNotExist:
-            response = {
-                'code': 0,
-                'message': '用户名或密码不正确'
-            }
-            return Response(response)
-        else:
-            data = {
-                'token':token
-            }
-            serializer = UserSerializer(data=data, instance=user)
-            if serializer.is_valid():
-                serializer.save()
+            try:
+                user = User.objects.get(username=username, password=password)
+            except ObjectDoesNotExist:
                 response = {
-                    'code': 1,
-                    'data': {"token": token}
+                    'code': 0,
+                    'message': '用户名或密码不正确'
                 }
                 return Response(response)
             else:
-                return Response(serializer.errors)
+                data = {
+                    'token': token
+                }
+                serializer = UserSerializer(data=data, instance=user)
+                if serializer.is_valid():
+                    serializer.save()
+                    response = {
+                        'code': 1,
+                        'data': {"token": token}
+                    }
+                    return Response(response)
+                else:
+                    return Response(serializer.errors)
+        else:
+            response = {
+                'code': 0,
+                'message': '用户被封禁，请联系管理员'
+            }
+            return Response(response)
 
-    def get(self,request):
+    def get(self, request):
         response = {
-            'code':1,
-            'message':'user logged out'
+            'code': 1,
+            'message': 'user logged out'
         }
         return Response(response)
 
@@ -65,16 +74,16 @@ class AdminInfoView(APIView):
                 'data': {"roles": ["admin"], "introduction": "I am a super administrator",
                          "avatar": "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
                          "name": serializer.data['username'],
-                         "center_id": serializer.data['center_id']},
+                         "center_id": serializer.data['center_id'],
+                         "id": serializer.data['id']
+                         },
             }
             return Response(response)
 
 
-
-
 class UserView(APIView):
     # 创建一个用户，默认密码为123
-    def post(self,request):
+    def post(self, request):
         username = request.data['username']
         center_id = request.data['center_id']
 
@@ -84,37 +93,38 @@ class UserView(APIView):
                 'username': username,
                 'password': password,
                 'center_id': center_id,
-                'status':1
+                'status': 1
             }
             serializer = UserSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
+                response = {
+                    'code': 1,
+                    'data': serializer.data,
+                }
+                return Response(response)
             else:
                 return Response(serializer.errors)
         else:
             response = {
-                'code': 1,
+                'code': 0,
                 'message': '用户名已存在'
             }
             return Response(response)
 
-    # 编辑密码
+    # 重置用户密码
     def put(self, request):
         uid = request.data['id']
-        password = request.data['password']
-        username = request.data['username']
         data = {
-            'id':uid,
-            'username':username,
-            'password':make_password(password)
+            'id': uid,
+            'password': make_password("123")
         }
         try:
             user = User.objects.get(id=uid)
         except:
             response = {
-                'code': 1,
-                'data': ['用户id不存在'],
+                'code': 0,
+                'message': '用户id不存在',
             }
             return Response(response)
         else:
@@ -136,19 +146,20 @@ class UserView(APIView):
             User.objects.get(id=uid).delete()
         except:
             response = {
-                'code': 1,
-                'data': ['用户id不存在'],
+                'code': 0,
+                'message': '用户id不存在',
             }
             return Response(response)
         else:
             response = {
                 'code': 1,
-                'data': ['删除成功'],
+                'message': '删除成功',
             }
             return Response(response)
 
+
 class UserFilterView(APIView):
-    def post(self,request):
+    def post(self, request):
         if 'id' in request.data:
             uid = request.data['id']
             user = User.objects.get(id=uid)
@@ -161,16 +172,37 @@ class UserFilterView(APIView):
         elif 'center_id' in request.data:
             center_id = request.data['center_id']
             user = User.objects.filter(center_id=center_id)
-            serializer = UserSerializer(user,many=True)
+            serializer = UserSerializer(user, many=True)
             response = {
                 'code': 1,
                 'data': serializer.data
             }
             return Response(response)
 
-
-
-
-
-
-
+    def put(self, request):
+        uid = request.data['id']
+        password = make_password(request.data['password'])
+        new_password = make_password(request.data['new_password'])
+        data = {
+            'id': uid,
+            'password': new_password
+        }
+        try:
+            user = User.objects.get(id=uid, password=password)
+        except:
+            response = {
+                'code': 0,
+                'message': '原密码错误',
+            }
+            return Response(response)
+        else:
+            serializer = UserSerializer(data=data, instance=user)
+            if serializer.is_valid():
+                serializer.save()
+                response = {
+                    'code': 1,
+                    'data': serializer.data,
+                }
+                return Response(response)
+            else:
+                return Response(serializer.errors)

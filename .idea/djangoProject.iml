@@ -20,6 +20,7 @@
       <sourceFolder url="file://$MODULE_DIR$/sougouweixin" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/wechat" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sougou_weixin" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sougou_weixin_list" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

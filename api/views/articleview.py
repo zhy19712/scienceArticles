@@ -12,22 +12,8 @@ from sougou_weixin.util import get_host
 
 
 class ArticleView(APIView):
-    def post(self, request):
-        print(request.data)
-
-        serializer = ArticleSerializer(data=request.data)
-        if serializer.is_valid():
-            article = serializer.save()
-            response = {
-                'code': 1,
-                'data': serializer.data,
-            }
-            return Response(response)
-        else:
-            return Response(serializer.errors)
-
     def get(self, request):
-        article = Article.objects.all()
+        article = Article.objects.all().order_by('-time')
         serializer = ArticleSerializer(article, many=True)
         response = {
             'code': 1,
@@ -36,7 +22,7 @@ class ArticleView(APIView):
         return Response(response)
 
     # 通过keyword_id查询关键字所对应的文章
-    def put(self, request):
+    def post(self, request):
         if 'page' in request.data.keys():
             page = request.data['page']
         if 'size' in request.data.keys():
@@ -49,7 +35,7 @@ class ArticleView(APIView):
         for row in serializer.data:
             article_id.append(row['article_id'])
 
-        article = Article.objects.filter(id__in=article_id).values('id','target','title','time')[(page-1)*size:page*size]
+        article = Article.objects.filter(id__in=article_id).values('id','target','title','time').order_by('-time')[(page-1)*size:page*size]
         count = Article.objects.filter(id__in=article_id).count()
 
         serializer = ArticleSerializer(article, many=True)
@@ -88,7 +74,6 @@ class ArticleFilterView(APIView):
             return Response(serializer.errors)
 
 
-
     def put(self, request):
         if 'uid' in request.data.keys():
             uid = request.data['uid']
@@ -97,7 +82,7 @@ class ArticleFilterView(APIView):
         except:
             response = {
                 'code': 0,
-                'data': [],
+                'message': '文章不存在',
             }
             return Response(response)
         else:
@@ -112,6 +97,7 @@ class ArticleFilterView(APIView):
             else:
                 return Response(serializer.errors)
 
+
     def delete(self, request):
         if 'uid' in request.data.keys():
             uid = request.data['uid']
@@ -120,13 +106,13 @@ class ArticleFilterView(APIView):
         except:
             response = {
                 'code': 0,
-                'data': [],
+                'message': '文章不存在',
             }
             return Response(response)
         else:
             response = {
                 'code': 1,
-                'data': [],
+                'message': '删除成功',
             }
             return Response(response)
 
@@ -138,13 +124,13 @@ class GlobalSearchView(APIView):
         keyword = request.data['keyword']
 
         if len(keyword.strip()) == 0:
-            article = Article.objects.filter(time__range=(start_date+" 00:00:00", end_date+" 23:59:59"))
+            article = Article.objects.filter(time__range=(start_date+" 00:00:00", end_date+" 23:59:59")).order_by('-time')
             serializer = ArticleSerializer(article, many=True)
         elif len(start_date.strip()) == 0 or len(end_date.strip()) == 0:
-            article = Article.objects.filter(Q(title__icontains=keyword) | Q(text__icontains=keyword))
+            article = Article.objects.filter(Q(title__icontains=keyword) | Q(text__icontains=keyword)).order_by('-time')
             serializer = ArticleSerializer(article, many=True)
         else:
-            article = Article.objects.filter(Q(title__icontains=keyword) | Q(text__icontains=keyword), time__range=(start_date + " 00:00:00", end_date + " 23:59:59"))
+            article = Article.objects.filter(Q(title__icontains=keyword) | Q(text__icontains=keyword), time__range=(start_date + " 00:00:00", end_date + " 23:59:59")).order_by('-time')
             serializer = ArticleSerializer(article, many=True)
 
         response = {

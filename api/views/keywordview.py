@@ -11,7 +11,7 @@ class KeywordView(APIView):
         serializer = KeywordSerializer(data=request.data)
 
         if serializer.is_valid():
-            if not Keyword.objects.filter(keyword=request.data['keyword']):
+            if not Keyword.objects.filter(keyword=request.data['keyword'], category_id=request.data['category_id']):
                 keyword = serializer.save()
                 response = {
                     'code': 1,
@@ -20,8 +20,8 @@ class KeywordView(APIView):
                 return Response(response)
             else:
                 response = {
-                    'code': 1,
-                    'data': ['关键字已存在']
+                    'code': 0,
+                    'message': '关键字已存在'
                 }
                 return Response(response)
         else:
@@ -70,7 +70,7 @@ class KeywordFilterView(APIView):
         else:
             response = {
                 'code': 0,
-                'data': ['id or category_id is required'],
+                'message': 'id or category_id is required',
             }
             return Response(response)
         if serializer:
@@ -85,25 +85,35 @@ class KeywordFilterView(APIView):
     # 编辑
     def put(self, request):
         uid = request.data['id']
-        try:
-            keyword = Keyword.objects.get(id=uid)
-        except:
+        count = Keyword.objects.filter(keyword=request.data['keyword'], category_id=request.data['category_id']).exclude(id=uid).count()
+        if count > 0 :
             response = {
-                'code': 1,
-                'data': ['id不存在'],
+                'code': 0,
+                'message': 'keyword 已存在',
             }
             return Response(response)
         else:
-            serializer = KeywordSerializer(data=request.data, instance=keyword)
-            if serializer.is_valid():
-                serializer.save()
+            try:
+                keyword = Keyword.objects.get(id=uid)
+            except:
                 response = {
-                    'code': 1,
-                    'data': serializer.data,
+                    'code': 0,
+                    'message': 'id 不存在',
                 }
                 return Response(response)
             else:
-                return Response(serializer.errors)
+                serializer = KeywordSerializer(data=request.data, instance=keyword)
+                if serializer.is_valid():
+                    serializer.save()
+                    response = {
+                        'code': 1,
+                        'data': serializer.data,
+                    }
+                    return Response(response)
+                else:
+                    return Response(serializer.errors)
+
+
     # 删除
     def delete(self, request):
         uid = request.data['id']
@@ -111,14 +121,14 @@ class KeywordFilterView(APIView):
             Keyword.objects.get(id=uid).delete()
         except:
             response = {
-                'code': 1,
-                'data': ['id不存在'],
+                'code': 0,
+                'message': 'id不存在',
             }
             return Response(response)
         else:
             response = {
                 'code': 1,
-                'data': ['删除成功'],
+                'message': '删除成功',
             }
             return Response(response)
 
@@ -131,7 +141,7 @@ class KeywordTreeView(APIView):
         data = []
         for cate in category_serializer.data:
             children = []
-            keyword = Keyword.objects.filter(category_id=cate['id'])
+            keyword = Keyword.objects.filter(category_id=cate['id'], status=1)
             keyword_serializer = KeywordSerializer(keyword, many=True)
             for key in keyword_serializer.data:
                 children.append({'label':key['keyword'],'keyword_id':key['id']})

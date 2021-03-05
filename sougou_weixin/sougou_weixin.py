@@ -265,12 +265,13 @@ def save_html(response, target):
                 serializer = ArticleSerializer(data=article)
                 if serializer.is_valid():
                     serializer.save()
+                    add_scrapedUrls(target, article_time)
+                    saved_flag = True
+                    weixin_log.info("successfully saved to database")
                 else:
                     weixin_log.error("failed save to database")
 
-                add_scrapedUrls(target, article_time)
-                saved_flag = True
-                weixin_log.info("successfully saved to database")
+
 
                 try:
                     f = open(filepath, "wb")
@@ -336,7 +337,7 @@ def start_process():
     UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
 
     for t in target:
-        time.sleep(random.randint(0, 9))
+        time.sleep(random.randint(10, 20))
         weixin_log.info(t + " : task start")
         url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(
             parse.quote(t))
@@ -345,18 +346,18 @@ def start_process():
         except:
             weixin_log.error(t + " : Failed get article")
         else:
-            if not_in_scrapedUrls(t, article_time):
+            if not_in_scrapedUrls(t, article_time, 2):
                 save_html(response, t)
             else:
                 weixin_log.info("article already exists, pass")
 
 
 if __name__ == "__main__":
-    # scheduler = BackgroundScheduler()
-    # scheduler.add_job(start_process, 'interval', minutes=1)
-    # try:
-    #     # scheduler.remove_all_jobs()
-    #     scheduler.start()
-    # except (KeyboardInterrupt, System Exit):
-    #     pass
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(start_process, 'interval', minutes=1)
+    try:
+        # scheduler.remove_all_jobs()
+        scheduler.start()
+    except (KeyboardInterrupt):
+        pass
     start_process()

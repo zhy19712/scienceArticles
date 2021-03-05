@@ -1,5 +1,7 @@
 import datetime
 import random
+import re
+import urllib
 from urllib.parse import urlsplit
 
 from api.models import Target, ScrapedUrls, Keyword
@@ -14,7 +16,7 @@ def get_target(type):
     queryset = Target.objects.filter(type=type, status=1).distinct()
     serializer = TargetSerializer(queryset, many=True)
     for row in serializer.data:
-            target.append(row['target'])
+            target.append(row['target'].strip(' '))
     return list(set(target))
 
 
@@ -39,11 +41,17 @@ def timestamp2date(timeStamp):
 
 
 # 判断文章是否已经存在
-def not_in_scrapedUrls(target, time):
-    queryset = ScrapedUrls.objects.filter(target=target, time=time)
-    if queryset:
-        return False
-    return True
+def not_in_scrapedUrls(target, time, type):
+    if type == 2:
+        queryset = ScrapedUrls.objects.filter(target=target, time=time)
+        if queryset:
+            return False
+        return True
+    else:
+        queryset = ScrapedUrls.objects.filter(target=target)
+        if queryset:
+            return False
+        return True
 
 
 # 标记已入库文章
@@ -84,3 +92,16 @@ def get_host(request):
     base_url = http + '://' + host + '/'
     return base_url
 
+
+# 根据网址返回域名
+def get_domain(url):
+    return urllib.parse.urlparse(url).netloc
+
+
+# 判断时间格式是否正确
+def is_time(time):
+    r = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{2}')
+    if r.match(time) is not None:
+        return True
+    else:
+        return False

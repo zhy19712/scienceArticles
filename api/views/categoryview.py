@@ -2,7 +2,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.serializers import CategorySerializer
-from api.models import Category
+from api.models import Category, Keyword
 
 
 class CategoryView(APIView):
@@ -10,7 +10,7 @@ class CategoryView(APIView):
         serializer = CategorySerializer(data=request.data)
 
         if serializer.is_valid():
-            if not Category.objects.filter(category=request.data['category']):
+            if not Category.objects.filter(category=request.data['category'], center_id=request.data['center_id']):
                 category = serializer.save()
                 response = {
                     'code': 1,
@@ -19,8 +19,8 @@ class CategoryView(APIView):
                 return Response(response)
             else:
                 response = {
-                    'code': 1,
-                    'data': ['分类已存在']
+                    'code': 0,
+                    'message': '分类已存在'
                 }
                 return Response(response)
         else:
@@ -69,25 +69,34 @@ class CategoryFilterView(APIView):
 
     def put(self, request):
         uid = request.data['id']
-        try:
-            category = Category.objects.get(id=uid)
-        except:
+        count = Category.objects.filter(category=request.data['category'], center_id=request.data['center_id']).exclude(id=uid).count()
+        if count > 0:
             response = {
                 'code': 0,
-                'data': [],
+                'message': 'category 已存在',
             }
             return Response(response)
         else:
-            serializer = CategorySerializer(data=request.data, instance=category)
-            if serializer.is_valid():
-                serializer.save()
+            try:
+                category = Category.objects.get(id=uid)
+            except:
                 response = {
-                    'code': 1,
-                    'data': serializer.data,
+                    'code': 0,
+                    'message': 'id 不存在',
                 }
                 return Response(response)
             else:
-                return Response(serializer.errors)
+                serializer = CategorySerializer(data=request.data, instance=category)
+                if serializer.is_valid():
+                    serializer.save()
+                    response = {
+                        'code': 1,
+                        'data': serializer.data,
+                    }
+                    return Response(response)
+                else:
+                    return Response(serializer.errors)
+
 
     def delete(self, request):
         uid = request.data['id']
@@ -96,13 +105,14 @@ class CategoryFilterView(APIView):
         except:
             response = {
                 'code': 0,
-                'data': [],
+                'message': 'id不存在',
             }
             return Response(response)
         else:
+            Keyword.objects.filter(category_id=uid).delete()
             response = {
                 'code': 1,
-                'data': [],
+                'message': '删除成功',
             }
             return Response(response)
 

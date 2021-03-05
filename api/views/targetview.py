@@ -10,7 +10,7 @@ class TargetView(APIView):
     def post(self, request):
         serializer = TargetSerializer(data=request.data)
         if serializer.is_valid():
-            if not Target.objects.filter(target=request.data['target']):
+            if not Target.objects.filter(target=request.data['target'], center_id=request.data['center_id']):
                 target = serializer.save()
                 response = {
                     'code': 1,
@@ -81,25 +81,35 @@ class TargetFilterView(APIView):
 
     def put(self, request):
         uid = request.data['id']
-        try:
-            target = Target.objects.get(id=uid)
-        except:
+        count = Target.objects.filter(target=request.data['target'], center_id=request.data['center_id']).exclude(id=uid).count()
+        if count > 0 :
             response = {
                 'code': 0,
-                'data': [],
+                'message': 'Target 已存在',
             }
             return Response(response)
         else:
-            serializer = TargetSerializer(data=request.data, instance=target)
-            if serializer.is_valid():
-                serializer.save()
+            try:
+                target = Target.objects.get(id=uid)
+            except:
                 response = {
-                    'code': 1,
-                    'data': serializer.data,
+                    'code': 0,
+                    'message': 'id不存在',
                 }
                 return Response(response)
             else:
-                return Response(serializer.errors)
+                serializer = TargetSerializer(data=request.data, instance=target)
+                if serializer.is_valid():
+                    serializer.save()
+                    response = {
+                        'code': 1,
+                        'data': serializer.data,
+                    }
+                    return Response(response)
+                else:
+                    return Response(serializer.errors)
+
+
 
     def delete(self, request):
         uid = request.data['id']

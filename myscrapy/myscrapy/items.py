@@ -8,10 +8,11 @@ from scrapy_djangoitem import DjangoItem
 from api import models
 
 
-class TutorialItem(DjangoItem):
-    django_model = models.Article
-
-
-class CtgItem(DjangoItem):
-    django_model = models.Article
+class ArticleItem(scrapy.Item):
+    target = scrapy.Field()
+    url = scrapy.Field()
+    title = scrapy.Field()
+    time = scrapy.Field()
+    text = scrapy.Field()
+    response = scrapy.Field()
 
