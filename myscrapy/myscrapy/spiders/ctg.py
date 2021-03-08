@@ -1,20 +1,12 @@
 import datetime
-import logging
-import os
 import re
 
 import scrapy
-from bs4 import BeautifulSoup
 
-from logger import logger
 from myscrapy.items import ArticleItem
 from scrapy import Request
 
-from djangoProject.settings import BASE_DIR
-from serializers import ArticleSerializer, KeywordArticleSerializer
-from sougou_weixin.util import get_keyword, not_in_scrapedUrls, n_digits_random, get_domain, is_time, add_scrapedUrls
-
-
+from sougou_weixin.sougou_weixin import not_in_scrapedUrls, get_domain
 
 
 class CtgSpider(scrapy.Spider):

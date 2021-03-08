@@ -5,10 +5,9 @@ from urllib import parse
 from bs4 import BeautifulSoup
 
 from logger import logger
-from api.models import Keyword
-from serializers import ArticleSerializer, KeywordSerializer, KeywordArticleSerializer
+from api.serializers import ArticleSerializer, KeywordArticleSerializer
 from settings import BASE_DIR
-from util import timestamp2string, not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, get_keyword, \
+from sougou_weixin.util import not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, get_keyword, \
     timestamp2date
 import logging
 import re
@@ -351,13 +350,24 @@ def start_process():
             else:
                 weixin_log.info("article already exists, pass")
 
+#
+# if __name__ == "__main__":
+#     scheduler = BackgroundScheduler()
+#     scheduler.add_job(start_process, 'interval', minutes=1)
+#     try:
+#         # scheduler.remove_all_jobs()
+#         scheduler.start()
+#     except (KeyboardInterrupt):
+#         pass
+#     start_process()
 
-if __name__ == "__main__":
+def run_weixin_crawler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(start_process, 'interval', minutes=1)
+    scheduler.add_job(start_process, 'interval', minutes=2)
     try:
         # scheduler.remove_all_jobs()
         scheduler.start()
     except (KeyboardInterrupt):
         pass
     start_process()
+

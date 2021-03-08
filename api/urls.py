@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api.views import targetview, keywordview, articleview, categoryview, centerview, adminview
+from api.views import targetview, keywordview, articleview, categoryview, centerview, adminview, systemview
 
 app_name = 'api'   # 指定命名空间
 
@@ -19,6 +19,7 @@ urlpatterns = [
     path('admin/userfilter', adminview.UserFilterView.as_view(), name='user查'),
     path('keywordtree', keywordview.KeywordTreeView.as_view(), name='post 构建关键字树'),
     path('center', centerview.CenterView.as_view(), name='get 获取中心'),
-    path('globalsearch',articleview.GlobalSearchView.as_view(), name='post 全局搜索')
+    path('globalsearch',articleview.GlobalSearchView.as_view(), name='post 全局搜索'),
+    path('startcrawler',systemview.SystemView.as_view(), name='start crawler')
 
 ]

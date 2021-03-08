@@ -9,17 +9,15 @@ import logging
 import os
 
 from bs4 import BeautifulSoup
-from itemadapter import ItemAdapter
-
 
 #
 # class MyscrapyPipeline:
 #     def process_item(self, item, spider):
 #         return item
 from djangoProject.settings import BASE_DIR
-from logger import logger
+from sougou_weixin.logger import logger
 from api.serializers import ArticleSerializer, KeywordArticleSerializer
-from sougou_weixin.util import get_keyword, n_digits_random, add_scrapedUrls
+from sougou_weixin.sougou_weixin import get_keyword, n_digits_random, add_scrapedUrls
 
 # 配置scrapy爬虫logger
 scrapy_log = logger('scrapy.log', logging.DEBUG, logging.DEBUG)

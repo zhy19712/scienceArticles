@@ -1,8 +1,4 @@
-import datetime
-from urllib.parse import urlsplit
-
 from django.db.models import Q
-from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
