@@ -1,18 +1,20 @@
 import datetime
 import re
 
+
 import scrapy
 
 from myscrapy.items import ArticleItem
 from scrapy import Request
 
-from sougou_weixin.sougou_weixin import not_in_scrapedUrls, get_domain
+from sougou_weixin.util import not_in_scrapedUrls, get_domain, get_target
 
 
 class CtgSpider(scrapy.Spider):
     name = 'ctg_spider'  # 项目名称
     domains = []
-    start_urls = ['https://www.ctg.com.cn']  # 开始url
+    start_urls = get_target(1)  # 开始url
+    print(start_urls)
     for url in start_urls:
         domains.append(get_domain(url))
     allowed_domains = domains  #指定爬虫作用范围
@@ -31,7 +33,6 @@ class CtgSpider(scrapy.Spider):
 
     def get_all(self, item, response):
         url = response.url.strip()
-        print(response.html)
         if not_in_scrapedUrls(url, "2021", 1):
             # 获取当前页面的网址、title、一级标题、正文内容
             main_text = []

@@ -8,12 +8,9 @@
 import logging
 import os
 
+import pymysql
 from bs4 import BeautifulSoup
 
-#
-# class MyscrapyPipeline:
-#     def process_item(self, item, spider):
-#         return item
 from djangoProject.settings import BASE_DIR
 from sougou_weixin.logger import logger
 from api.serializers import ArticleSerializer, KeywordArticleSerializer
@@ -24,11 +21,27 @@ scrapy_log = logger('scrapy.log', logging.DEBUG, logging.DEBUG)
 
 
 class MyscrapyPipeline(object):
+    def __init__(self):
+        # 连接数据库
+        self.connect = pymysql.connect(
+            host='39.102.58.35',  # 数据库地址
+            port=3306,  # 数据库端口
+            db='crawler',  # 数据库名
+            user='root',  # 数据库用户名
+            passwd='jsjs=123',  # 数据库密码
+            charset='utf8',  # 编码方式
+            use_unicode=True)
+
+        # 通过cursor执行增删查改
+        self.cursor = self.connect.cursor();
+
+
     def process_item(self, item, spider):
         keyword = get_keyword()
         saved_flag = False
         for word in keyword:
             if word['keyword'] in item['title'] or word['keyword'] in item['text']:
+                article_id = 0
                 if not saved_flag:
                     dir_name = n_digits_random(4)
                     first = os.path.join(BASE_DIR, 'local')
@@ -49,77 +62,46 @@ class MyscrapyPipeline(object):
                     relative_filepath = relative_dir + dir_name + '.html'
                     filepath_bak = target_dir + dir_name + '_bak.html'
 
-                    article = {
-                        "target": item['target'],
-                        "url": item['url'],
-                        "title": item['title'],
-                        "time": item['time'],
-                        "text": item['text'],
-                        "filepath": relative_filepath
-                    }
-                    serializer = ArticleSerializer(data=article)
-
-                    if serializer.is_valid():
-                        serializer.save()
-                        add_scrapedUrls(item['url'], item['time'])
-                        saved_flag = True
-                        scrapy_log.info("successfully saved to database")
-                    else:
-                        scrapy_log.error("failed save to database")
-
                     try:
-                        f = open(filepath, "wb")
-                        f.write(item['response'].content)
-                        f.close()
-
-                        obj = BeautifulSoup(item['response'].content, 'lxml')  # 后面是指定使用lxml解析，lxml解析速度比较快，容错高。
-                        imgs = obj.find_all('img')
-                        urls = []
-                        for img in imgs:
-                            if 'data-src' in str(img):
-                                urls.append(img['data-src'])
-                        # 遍历所有图片链接，将图片保存到本地指定文件夹，图片名字用0，1，2...
-                        i = 0
-                        suffix = ''
-                        for url in urls:
-                            if url.endswith('png'):
-                                suffix = '.png'
-                            elif url.endswith('jpeg'):
-                                suffix = '.jpg'
-                            elif url.endswith('gif'):
-                                suffix = '.gif'
-                            t = os.path.join(target_dir, str(i) + suffix)
-                            t_relative = os.path.join(relative_dir, str(i) + suffix)
-                            fw = open(t, 'wb')  # 指定绝对路径
-                            fw.write(item['response'].content)  # 保存图片到本地指定目录
-                            i += 1
-
-                            with open(filepath, encoding='utf-8') as f, open(filepath_bak, 'w',
-                                                                             encoding='utf-8') as fw:  # 打开两个文件，原始文件用来读，另一个文件将修改的内容写入
-                                old_url = 'data-src="' + url + '"'
-                                new_url = 'src="/' + t_relative + '"'
-                                for line in f:  # 遍历每行，用replace 方法替换
-                                    new_line = line.replace(old_url, new_url)  # 逐行替换
-                                    fw.write(new_line)  # 写入新文件
-                            os.remove(filepath)  # 删除原始文件
-                            os.rename(filepath_bak, filepath)  # 修改新文件名， old -> new
-
-                            fw.close()
+                        with open(filepath, 'wb') as fp:
+                            fp.write(item['response'].body)
                     except:
                         scrapy_log.info("failed save to local file")
                     else:
                         scrapy_log.info("successfully saved to local file")
 
-                keywordarticle = {
-                    "keyword_id": word['keyword_id'],
-                    "article_id": serializer.data['id']
-                }
-                keywordarticle_serializer = KeywordArticleSerializer(data=keywordarticle)
-                if keywordarticle_serializer.is_valid():
-                    keywordarticle_serializer.save()
-                else:
-                    scrapy_log.error("keyword-article relationship built failed!")
+                    self.cursor.execute(
+                        """insert into api_article(target, url, title, time ,text, filepath)
+                        value (%s, %s, %s, %s, %s, %s)""",
+                        (item['target'],
+                         item['url'],
+                         item['title'],
+                         item['time'],
+                         item['text'],
+                         relative_filepath))
 
+                    # 提交sql语句
+                    article_id = int(self.connect.insert_id())
+                    try:
+                        self.connect.commit()
+                    except:
+                        scrapy_log.error("failed save to database")
+                    else:
+                         add_scrapedUrls(item['url'], item['time'])
+                         saved_flag = True
+                         scrapy_log.info("successfully saved to database")
+
+                self.cursor.execute(
+                    """insert into api_keywordarticle(keyword_id, article_id)
+                    value (%s, %s)""",
+                    (word['keyword_id'],
+                     article_id))
+                try:
+                    self.connect.commit()
+                except:
+                    scrapy_log.error("keyword-article relationship built failed!")
+                else:
+                    pass
         if not saved_flag:
             scrapy_log.info(item['target'] + " not contains any of the keywords, pass")
 

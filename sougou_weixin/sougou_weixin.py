@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from logger import logger
 from api.serializers import ArticleSerializer, KeywordArticleSerializer
-from settings import BASE_DIR
+from djangoProject.settings import BASE_DIR
 from sougou_weixin.util import not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, get_keyword, \
     timestamp2date
 import logging
@@ -331,7 +331,7 @@ def save_html(response, target):
 
 def start_process():
     target = get_target(2)
-    print(target)
+    weixin_log.info(target)
     # target = ['三峡e家']
     UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
 
@@ -363,7 +363,7 @@ def start_process():
 
 def run_weixin_crawler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(start_process, 'interval', minutes=2)
+    scheduler.add_job(start_process, 'interval', minutes=240)
     try:
         # scheduler.remove_all_jobs()
         scheduler.start()
