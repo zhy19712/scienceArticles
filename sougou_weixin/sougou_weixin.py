@@ -365,7 +365,7 @@ def start_process():
 
 def run_weixin_crawler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(start_process, 'interval', minutes=10)
+    scheduler.add_job(start_process, 'interval', minutes=30)
     try:
         # scheduler.remove_all_jobs()
         scheduler.start()
