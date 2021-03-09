@@ -20,7 +20,5 @@ urlpatterns = [
     path('keywordtree', keywordview.KeywordTreeView.as_view(), name='post 构建关键字树'),
     path('center', centerview.CenterView.as_view(), name='get 获取中心'),
     path('globalsearch',articleview.GlobalSearchView.as_view(), name='post 全局搜索'),
-    path('startcrawler',systemview.StartWeinxinView.as_view(), name='start weixin'),
-    path('startcrawler',systemview.StartScrapyView.as_view(), name='start scrapy')
-
+    path('startcrawler',systemview.StartWeinxinView.as_view(), name='start weixin')
 ]

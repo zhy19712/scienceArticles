@@ -4,9 +4,10 @@ from urllib import parse
 
 from bs4 import BeautifulSoup
 
-from logger import logger
+
 from api.serializers import ArticleSerializer, KeywordArticleSerializer
 from djangoProject.settings import BASE_DIR
+from djangoProject.logger import logger
 from sougou_weixin.util import not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, get_keyword, \
     timestamp2date
 import logging
@@ -325,6 +326,7 @@ def save_html(response, target):
                 keywordarticle_serializer.save()
             else:
                 weixin_log.error("keyword-article relationship built failed!")
+
     if not saved_flag:
         weixin_log.info(target + " not contains any of the keywords, pass")
 
@@ -363,7 +365,7 @@ def start_process():
 
 def run_weixin_crawler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(start_process, 'interval', minutes=240)
+    scheduler.add_job(start_process, 'interval', minutes=10)
     try:
         # scheduler.remove_all_jobs()
         scheduler.start()

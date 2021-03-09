@@ -12,7 +12,7 @@ import pymysql
 from bs4 import BeautifulSoup
 
 from djangoProject.settings import BASE_DIR
-from sougou_weixin.logger import logger
+from djangoProject.logger import logger
 from api.serializers import ArticleSerializer, KeywordArticleSerializer
 from sougou_weixin.sougou_weixin import get_keyword, n_digits_random, add_scrapedUrls
 
