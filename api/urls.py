@@ -17,6 +17,7 @@ urlpatterns = [
     path('admin/info', adminview.AdminInfoView.as_view(), name='info'),
     path('admin/user', adminview.UserView.as_view(), name='user增删改'),
     path('admin/userfilter', adminview.UserFilterView.as_view(), name='user查'),
+    path('admin/userstatus', adminview.UserStatusView.as_view(), name='user status'),
     path('keywordtree', keywordview.KeywordTreeView.as_view(), name='post 构建关键字树'),
     path('center', centerview.CenterView.as_view(), name='get 获取中心'),
     path('globalsearch',articleview.GlobalSearchView.as_view(), name='post 全局搜索'),

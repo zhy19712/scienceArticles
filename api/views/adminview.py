@@ -206,3 +206,32 @@ class UserFilterView(APIView):
                 return Response(response)
             else:
                 return Response(serializer.errors)
+
+
+class UserStatusView(APIView):
+    def post(self, request):
+        uid = request.data['id']
+        status = request.data['status']
+        data = {
+            'id': uid,
+            'status':status
+        }
+        try:
+            user = User.objects.get(id=uid)
+        except:
+            response = {
+                'code': 0,
+                'message': '用户id不存在',
+            }
+            return Response(response)
+        else:
+            serializer = UserSerializer(data=data, instance=user)
+            if serializer.is_valid():
+                serializer.save()
+                response = {
+                    'code': 1,
+                    'data': serializer.data,
+                }
+                return Response(response)
+            else:
+                return Response(serializer.errors)
