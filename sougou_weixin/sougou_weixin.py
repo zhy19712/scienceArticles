@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from api.serializers import ArticleSerializer, KeywordArticleSerializer
 from djangoProject.settings import BASE_DIR
 from djangoProject.logger import logger
-from sougou_weixin.util import not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, get_keyword, \
+from util import not_in_scrapedUrls, add_scrapedUrls, n_digits_random, get_target, get_keyword, \
     timestamp2date
 import logging
 import re
