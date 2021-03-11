@@ -105,3 +105,7 @@ def is_time(time):
         return True
     else:
         return False
+
+
+def tick():
+    print('Tick! The time is: GGTT')
