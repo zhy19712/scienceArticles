@@ -338,7 +338,7 @@ def start_process():
     UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
 
     for t in target:
-        time.sleep(random.randint(10, 20))
+        time.sleep(random.randint(20, 30))
         weixin_log.info(t + " : task start")
         url = 'https://weixin.sogou.com/weixin?type=1&s_from=input&query={}&_sug_=n&_sug_type_=&page=1'.format(
             parse.quote(t))

@@ -9,7 +9,7 @@ from sougou_weixin.util import tick
 class StartWeinxinView(APIView):
     def get(self, request):
         scheduler = BlockingScheduler()
-        scheduler.add_job(start_process, 'interval', seconds=600)
+        scheduler.add_job(start_process, 'interval', seconds=7200)
         print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C    '))
 
         try:
