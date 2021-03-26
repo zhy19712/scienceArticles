@@ -77,7 +77,7 @@ class MyscrapyDownloaderMiddleware:
         # - or return a Response object
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
-        #   installed downloader middleware will be called
+        #   installed downloader  will be called
         return None
 
     def process_response(self, request, response, spider):

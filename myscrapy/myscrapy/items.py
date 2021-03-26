@@ -8,7 +8,7 @@ from scrapy_djangoitem import DjangoItem
 from api import models
 
 
-class ArticleItem(scrapy.Item):
+class ArticleItem(DjangoItem):
     target = scrapy.Field()
     url = scrapy.Field()
     title = scrapy.Field()

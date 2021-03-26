@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 from api.models import Target, ScrapedUrls, Keyword
 from api.serializers import TargetSerializer, ScrapedUrlsSerializer, KeywordSerializer, KeywordArticleSerializer
 
+count = 0
 
 # 获取爬取对象
 # target_type = 2 ：微信公众号 ['name1','name2']
@@ -108,4 +109,6 @@ def is_time(time):
 
 
 def tick():
-    print('Tick! The time is: GGTT')
+    global count
+    print(count)
+    count = count +1
