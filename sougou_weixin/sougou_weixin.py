@@ -151,6 +151,7 @@ def get_response(list_url, UserAgent):
         "Upgrade-Insecure-Requests": "1",
         "User-Agent": UserAgent,
     }
+    print(1111111111111)
     response1 = requests.get(list_url, headers=headers1)
     html = etree.HTML(response1.text)
     weixin_log.info("list url : " + response1.url)
@@ -332,9 +333,10 @@ def save_html(response, target):
 
 
 def start_process():
-    target = get_target(2)
+    # target = get_target(2)
+
+    target = ['三峡e家']
     weixin_log.info(target)
-    # target = ['三峡e家']
     UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
 
     for t in target:
